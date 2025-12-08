@@ -1,3 +1,20 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+
 // ts/util/math/vector2.ts
 var Vector2 = class _Vector2 {
   constructor(x, y) {
@@ -552,7 +569,7 @@ var Task = class {
     this.dom = new Div({
       size: new Vector2(Schedule.TASK_WIDTH * (this.data.end - this.data.start), Schedule.TASK_HEIGHT),
       background: { color: this.data.color || "white" },
-      style: 'display: flex; align-items: center; justify-content: center; font-size: 14px; font-family: "Arial", sans-serif; padding: 12.5px 3px; border: 1px solid black; overflow: hidden; box-sizing: border-box; position: absolute;',
+      style: 'display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: "Arial", sans-serif; padding: 12.5px 3px; border: 1px solid black; overflow: hidden; box-sizing: border-box; position: absolute;',
       text: this.data.name
     });
   }
@@ -565,31 +582,6 @@ var Task = class {
 var IdleTask = class extends Task {
   constructor({ start, end, location }) {
     super({ name: "", start, end, location, color: "white", priority: 0 });
-  }
-};
-var SleepTask = class extends Task {
-  constructor({ start, end, location }) {
-    super({ name: "Sleep", start, end, location, color: "#9f9f9f", priority: 0.1 });
-  }
-};
-var ShowerTask = class extends Task {
-  constructor({ start, end, location }) {
-    super({ name: "Wash", start, end, location, color: "#c7c7ff", priority: 1 });
-  }
-};
-var EatTask = class extends Task {
-  constructor({ start, end, location }) {
-    super({ name: "Food", start, end, location, color: "#b5d5d8", priority: 1 });
-  }
-};
-var EngineTask = class extends Task {
-  constructor({ start, end, location }) {
-    super({ name: "Office", start, end, location, color: "#e1e1e1" });
-  }
-};
-var WorkTask = class extends Task {
-  constructor({ start, end, location }) {
-    super({ name: "Work", start, end, location, color: "#dcb1cd" });
   }
 };
 
@@ -701,14 +693,11 @@ var _Schedule = class _Schedule {
       }
     }
     const task = this.getTaskAtTime(time % 24);
-    if (task instanceof IdleTask) {
-      return { phase: "idle", position: task.data.location.data.position, task: void 0 };
-    }
     return { phase: "task", position: task.data.location.data.position, task };
   }
 };
-_Schedule.TASK_WIDTH = 60;
-_Schedule.TASK_HEIGHT = 40;
+_Schedule.TASK_WIDTH = 30;
+_Schedule.TASK_HEIGHT = 30;
 var Schedule = _Schedule;
 
 // ts/logic/tasks/travel.ts
@@ -919,11 +908,6 @@ var MapLocation = class {
       r: 5,
       fill: "black"
     }));
-    this.dom.append(new Svg("text", {
-      text: this.data.name,
-      x: this.data.position.x + 15,
-      y: this.data.position.y + 25
-    }));
   }
 };
 
@@ -961,79 +945,23 @@ var MapManager = class {
   }
 };
 
-// ts/logic/people/person.ts
-var Person = class {
-  constructor(managers, data) {
-    this.managers = managers;
-    this.data = data;
-    this.speed = 500;
-    // pixels per hour
-    this._phase = "idle";
-    this.name = data.name;
-    this.schedule = new Schedule(this.managers, this, {
-      tasks: data.tasks
-    });
-    this.speed = data.speed || 500;
-  }
-  get phase() {
-    return this._phase;
-  }
-  set phase(value) {
-    this._phase = value;
-  }
-  build() {
-    this.schedule.build();
-    this.scheduleDom = new Div({
-      position: new Vector2(0, 0),
-      size: new Vector2(Schedule.TASK_WIDTH * 24, Schedule.TASK_HEIGHT),
-      style: "box-sizing: border-box; position: absolute;"
-    });
-    this.scheduleDom.append(new Div({
-      position: new Vector2(0, 0),
-      size: new Vector2(100, Schedule.TASK_HEIGHT),
-      text: this.name,
-      style: 'display: flex; align-items: center; justify-content: center; font-size: 15px; font-family: "Arial", sans-serif; box-sizing: border-box; position: absolute; '
-    }));
-    this.scheduleDom.append(this.schedule.dom);
-    this.characterDom = new Div({
-      position: new Vector2(0, 0),
-      size: new Vector2(20, 20),
-      // background: { color: 'white' },
-      style: "box-sizing: border-box; position: absolute; border-radius: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid black; box-sizing: border-box;"
-    });
-    this.characterDom.append(new Div({
-      text: this.name,
-      position: new Vector2(20, -1),
-      style: 'font-size: 14px; font-family: "Arial", sans-serif; padding: 2px 4px; border-radius: 4px; background: white;'
-    }));
-  }
-  setTime(time) {
-    const info = this.schedule.getInfoAtTime(time);
-    this.phase = info.phase;
-    this.activeTask = info.task;
-    this.characterDom.transform.setPosition(info.position);
-    this.schedule.setTime(time);
-  }
-};
-
 // ts/logic/people/peopleManager.ts
 var PeopleManager = class {
-  constructor(managers, people = []) {
+  constructor(managers, data = [], personClass) {
     this.managers = managers;
+    this.data = data;
+    this.personClass = personClass;
     this.people = [];
-    for (const person of people) {
-      this.addPerson(person);
-    }
-  }
-  addPerson(person) {
-    if (person instanceof Person) {
-      this.people.push(person);
-    } else {
-      this.people.push(new Person(this.managers, person));
+    for (const person of this.data) {
+      if (person instanceof this.personClass) {
+        this.people.push(person);
+      } else {
+        this.people.push(new this.personClass(this.managers, person));
+      }
     }
   }
   getPerson(name) {
-    return this.people.find((person) => person.name === name);
+    return this.people.find((person) => person.data.name === name);
   }
   build() {
     this.dom = new Div({});
@@ -1062,14 +990,14 @@ var PeopleManager = class {
 
 // ts/logic/map/list.ts
 var mapLocations = {
-  bedroom1: new Vector2(400, 400),
-  bathroom1: new Vector2(440, 360),
-  bedroom2: new Vector2(300, 500),
-  bathroom2: new Vector2(300, 550),
-  hallway1: new Vector2(400, 500),
-  main: new Vector2(500, 500),
-  work: new Vector2(600, 500),
-  engine: new Vector2(500, 600)
+  bedroom1: new Vector2(400 + 60, 250),
+  bathroom1: new Vector2(400 + 60 + 60, 200),
+  bedroom2: new Vector2(300, 300),
+  bathroom2: new Vector2(300 - 60, 350),
+  hallway1: new Vector2(400, 300),
+  main: new Vector2(500, 300),
+  work: new Vector2(600, 300),
+  engine: new Vector2(500 - 60, 350)
 };
 var mapConnections = [
   {
@@ -1077,7 +1005,7 @@ var mapConnections = [
     to: "work",
     path: PathCreator(
       mapLocations.main,
-      { point: mapLocations.work, controlA: mapLocations.main.add(new Vector2(0, -70)), controlB: mapLocations.work.add(new Vector2(0, -70)) }
+      { point: mapLocations.work, controlA: mapLocations.main.add(new Vector2(60, -50)), controlB: mapLocations.work.add(new Vector2(60, -50)) }
     )
   },
   { from: "main", to: "engine" },
@@ -1087,51 +1015,6 @@ var mapConnections = [
   { from: "bedroom1", to: "bathroom1" },
   { from: "bedroom2", to: "bathroom2" }
 ];
-
-// ts/logic/people/list.ts
-function getPeople(mapManager) {
-  return [
-    {
-      name: "Dave",
-      tasks: [
-        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("bedroom1") }),
-        new ShowerTask({ start: 7, end: 8, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 8, end: 9, location: mapManager.getLocation("main") }),
-        new WorkTask({ start: 9, end: 12, location: mapManager.getLocation("work") }),
-        new EngineTask({ start: 13, end: 17, location: mapManager.getLocation("engine") }),
-        new ShowerTask({ start: 17, end: 18, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 18, end: 20, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("bedroom1") })
-      ]
-    },
-    {
-      name: "Jane",
-      tasks: [
-        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("bedroom1") }),
-        new ShowerTask({ start: 6, end: 7, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 7, end: 8, location: mapManager.getLocation("main") }),
-        new EngineTask({ start: 8, end: 11, location: mapManager.getLocation("engine") }),
-        new WorkTask({ start: 12, end: 16, location: mapManager.getLocation("work") }),
-        new ShowerTask({ start: 16, end: 17, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 17, end: 19, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 21, end: 24, location: mapManager.getLocation("bedroom1") })
-      ]
-    },
-    {
-      name: "Andrew",
-      tasks: [
-        new EngineTask({ start: 0, end: 3, location: mapManager.getLocation("engine") }),
-        new ShowerTask({ start: 4, end: 5, location: mapManager.getLocation("bathroom2") }),
-        new EatTask({ start: 5, end: 7, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 8, end: 16, location: mapManager.getLocation("bedroom2") }),
-        new EatTask({ start: 16, end: 17, location: mapManager.getLocation("main") }),
-        new WorkTask({ start: 17, end: 20, location: mapManager.getLocation("work") }),
-        new ShowerTask({ start: 20, end: 21, location: mapManager.getLocation("bathroom2") }),
-        new EngineTask({ start: 22, end: 24, location: mapManager.getLocation("engine") })
-      ]
-    }
-  ];
-}
 
 // ts/util/game/main.ts
 var Main = class extends Div {
@@ -1261,33 +1144,41 @@ var ticker = new Ticker();
 
 // ts/logic/logicManager.ts
 var _LogicManager = class _LogicManager extends Main {
-  constructor(container) {
+  constructor(container, classes, peopleData = () => []) {
     super(container);
     this.container = container;
-    const managers = {};
-    this.mapManager = new MapManager(managers, mapLocations, mapConnections);
+    this.classes = classes;
+    this.peopleData = peopleData;
+    this.managers = {
+      mapManager: null,
+      peopleManager: null,
+      routeManager: null
+    };
+    this.mapManager = new MapManager(this.managers, mapLocations, mapConnections);
     this.peopleManager = new PeopleManager(
-      managers,
-      getPeople(this.mapManager)
+      this.managers,
+      this.peopleData(this.mapManager),
+      this.classes.Person
     );
-    managers.mapManager = this.mapManager;
-    managers.peopleManager = this.peopleManager;
-    managers.routeManager = this.mapManager.routeManager;
+    this.managers.mapManager = this.mapManager;
+    this.managers.peopleManager = this.peopleManager;
+    this.managers.routeManager = this.mapManager.routeManager;
     this.mapManager.build();
     this.peopleManager.build();
     this.container.append(this.mapManager.dom);
     this.container.append(this.peopleManager.dom);
-    this.setTime(3);
     this.ticker = new Ticker().addCallback(this.tick.bind(this));
   }
+  setup() {
+  }
   setTime(time) {
-    this.peopleManager.setTime(time);
+    this.peopleManager.setTime(time + 150);
   }
   tick() {
     this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY);
   }
 };
-_LogicManager.SECONDS_PER_DAY = 40;
+_LogicManager.SECONDS_PER_DAY = 80;
 var LogicManager = _LogicManager;
 
 // ts/util/game/transitions/transitionBase.ts
@@ -1601,11 +1492,400 @@ var Container = class extends Div {
   }
 };
 
+// ts/util/math/math.ts
+var MathUtil = class {
+  static max(a, b) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a > b ? a : b;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x > b.x ? a.x : b.x,
+        a.y > b.y ? a.y : b.y
+      );
+    }
+    throw new Error("Invalid max arguments: both arguments must be either numbers or Vector2 objects");
+  }
+  static min(a, b) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a < b ? a : b;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x < b.x ? a.x : b.x,
+        a.y < b.y ? a.y : b.y
+      );
+    }
+    throw new Error("Invalid min arguments: both arguments must be either numbers or Vector2 objects");
+  }
+  static clamp(value, min, max) {
+    if (typeof value === "number" && typeof min === "number" && typeof max === "number") {
+      return this.max(min, this.min(value, max));
+    } else if (value instanceof Vector2 && min instanceof Vector2 && max instanceof Vector2) {
+      return new Vector2(
+        this.max(min.x, this.min(value.x, max.x)),
+        this.max(min.y, this.min(value.y, max.y))
+      );
+    }
+    throw new Error("Invalid clamp arguments: all arguments must be either numbers or Vector2 objects");
+  }
+  static lerp(a, b, t) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a + (b - a) * t;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x + (b.x - a.x) * t,
+        a.y + (b.y - a.y) * t
+      );
+    }
+    throw new Error("Invalid lerp arguments: a and b must be either both numbers or both Vector2 objects");
+  }
+};
+
+// ts/util/html/sprite.ts
+var Sprite = class extends Div {
+  constructor(options) {
+    super(__spreadValues({
+      size: options.size,
+      background: {
+        type: "image",
+        image: options.image,
+        size: "".concat(options.size.x * options.columns, "px ").concat(options.size.y * options.rows, "px"),
+        repeat: "no-repeat"
+      },
+      style: "transform-origin: ".concat(options.size.x * options.columns / 2, "px ").concat(options.size.y * options.rows / 2, "px;")
+    }, options));
+    this.max = options.columns * options.rows;
+    this.options = options;
+    this.value = options.value || 0;
+  }
+  getSize() {
+    return new Vector2(this.options.size.x * this.options.columns, this.options.size.y * this.options.rows);
+  }
+  set value(value) {
+    this._value = Math.floor(value % this.max);
+    let column = this._value % this.options.columns;
+    let row = Math.floor(this._value / this.options.columns);
+    this.style("background-position-x: -".concat(this.options.size.x * column, "px; background-position-y: -").concat(this.options.size.y * row, "px;"));
+  }
+  set factor(factor) {
+    this.value = MathUtil.clamp(factor, 0, 1) * (this.max - 1);
+  }
+};
+
+// ts/visuals/character.ts
+var Character = class extends Sprite {
+  constructor(data) {
+    super({
+      image: "dist/images/Character_skin_colors/".concat(data.skin, ".png"),
+      size: new Vector2(100, 64),
+      columns: 10,
+      rows: 7,
+      value: 0
+    });
+    this.data = data;
+    this.layers = [];
+    this.data.layers.forEach((d) => {
+      const layer = new Sprite({
+        image: "dist/images/".concat(d, ".png"),
+        size: new Vector2(100, 64),
+        columns: 10,
+        rows: 7,
+        value: 0
+      });
+      this.layers.push(layer);
+      this.append(layer);
+    });
+  }
+  set value(value) {
+    var _a;
+    super.value = value;
+    (_a = this.layers) == null ? void 0 : _a.forEach((layer) => {
+      layer.value = value;
+    });
+  }
+  get value() {
+    return super.value;
+  }
+};
+
+// ts/visuals/visualTask.ts
+var VisualTask = class extends Task {
+  constructor(data) {
+    var _a, _b, _c, _d;
+    super(data);
+    this.data = data;
+    this.data.animationStart = (_a = this.data.animationStart) != null ? _a : 50;
+    this.data.animationDuration = (_b = this.data.animationDuration) != null ? _b : 6;
+    this.data.animationOffset = (_c = this.data.animationOffset) != null ? _c : new Vector2(0, 0);
+    this.data.animationSpeed = (_d = this.data.animationSpeed) != null ? _d : 200;
+  }
+};
+
+// ts/visuals/prefabs.ts
+var IdleTask2 = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({
+      name: "",
+      start,
+      end,
+      location,
+      color: "white",
+      priority: 0,
+      animationDuration: 5,
+      animationStart: 0,
+      animationSpeed: 300
+    });
+  }
+};
+var SleepTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({
+      name: "Sleep",
+      start,
+      end,
+      location,
+      color: "#9f9f9f",
+      priority: 0.1,
+      animationDuration: 2,
+      animationStart: 68,
+      animationOffset: new Vector2(20, 0),
+      animationSpeed: 1e3
+    });
+  }
+};
+var ShowerTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({
+      name: "Wash",
+      start,
+      end,
+      location,
+      color: "#c7c7ff",
+      priority: 1,
+      animationDuration: 4,
+      animationStart: 30,
+      animationSpeed: 1e3
+    });
+  }
+};
+var EatTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({
+      name: "Food",
+      start,
+      end,
+      location,
+      color: "#b5d5d8",
+      priority: 1,
+      animationDuration: 5,
+      animationStart: 0,
+      animationSpeed: 200
+    });
+  }
+};
+var EngineTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({ name: "Office", start, end, location, color: "#e1e1e1" });
+  }
+};
+var WorkTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({ name: "Work", start, end, location, color: "#dcb1cd" });
+  }
+};
+
+// ts/visuals/visualPeople.ts
+function getVisualPeople(mapManager) {
+  return [
+    {
+      name: "Dave",
+      tasks: [
+        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("bedroom1") }),
+        new ShowerTask({ start: 7, end: 8, location: mapManager.getLocation("bathroom1") }),
+        new EatTask({ start: 8, end: 9, location: mapManager.getLocation("main") }),
+        new WorkTask({ start: 9, end: 12, location: mapManager.getLocation("work") }),
+        new EngineTask({ start: 13, end: 17, location: mapManager.getLocation("engine") }),
+        new ShowerTask({ start: 17, end: 18, location: mapManager.getLocation("bathroom1") }),
+        new EatTask({ start: 18, end: 20, location: mapManager.getLocation("main") }),
+        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("bedroom1") })
+      ],
+      character: new Character({
+        skin: "Male_Skin1",
+        layers: [
+          "Male_Hair/Male_Hair1",
+          "Male_Clothing/Boots",
+          "Male_Clothing/Shirt",
+          "Male_Clothing/Pants"
+        ]
+      }),
+      offset: new Vector2(0, 0)
+    },
+    {
+      name: "Jane",
+      tasks: [
+        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("bedroom1") }),
+        new ShowerTask({ start: 6, end: 7, location: mapManager.getLocation("bathroom1") }),
+        new EatTask({ start: 7, end: 8, location: mapManager.getLocation("main") }),
+        new EngineTask({ start: 8, end: 11, location: mapManager.getLocation("engine") }),
+        new WorkTask({ start: 12, end: 16, location: mapManager.getLocation("work") }),
+        new ShowerTask({ start: 16, end: 17, location: mapManager.getLocation("bathroom1") }),
+        new EatTask({ start: 17, end: 19, location: mapManager.getLocation("main") }),
+        new SleepTask({ start: 21, end: 24, location: mapManager.getLocation("bedroom1") })
+      ],
+      character: new Character({
+        skin: "Female_Skin2",
+        layers: [
+          "Female_Hair/Female_Hair4",
+          "Female_Clothing/Corset",
+          "Female_Clothing/Boots",
+          "Female_Clothing/Skirt"
+        ]
+      }),
+      offset: new Vector2(10, -15)
+    },
+    {
+      name: "Andrew",
+      tasks: [
+        new EngineTask({ start: 0, end: 3, location: mapManager.getLocation("engine") }),
+        new ShowerTask({ start: 4, end: 5, location: mapManager.getLocation("bathroom2") }),
+        new EatTask({ start: 5, end: 7, location: mapManager.getLocation("main") }),
+        new SleepTask({ start: 8, end: 16, location: mapManager.getLocation("bedroom2") }),
+        new EatTask({ start: 16, end: 17, location: mapManager.getLocation("main") }),
+        new WorkTask({ start: 17, end: 20, location: mapManager.getLocation("work") }),
+        new ShowerTask({ start: 20, end: 21, location: mapManager.getLocation("bathroom2") }),
+        new EngineTask({ start: 22, end: 24, location: mapManager.getLocation("engine") })
+      ],
+      character: new Character({
+        skin: "Male_Skin3",
+        layers: [
+          "Male_Hair/Male_Hair3",
+          "Male_Clothing/Boots",
+          "Male_Clothing/Green_Shirt_v2",
+          "Male_Clothing/Pants"
+        ]
+      }),
+      offset: new Vector2(-15, 10)
+    }
+  ];
+}
+
+// ts/logic/people/person.ts
+var Person = class {
+  constructor(managers, data, scheduleClass) {
+    this.managers = managers;
+    this.data = data;
+    this.speed = 500;
+    // pixels per hour
+    this._phase = "idle";
+    this.schedule = new scheduleClass(this.managers, this, {
+      tasks: data.tasks
+    });
+    this.speed = data.speed || 500;
+  }
+  get phase() {
+    return this._phase;
+  }
+  set phase(value) {
+    this._phase = value;
+  }
+  build() {
+    this.schedule.build();
+    this.scheduleDom = new Div({
+      position: new Vector2(0, 0),
+      size: new Vector2(Schedule.TASK_WIDTH * 24, Schedule.TASK_HEIGHT),
+      style: "box-sizing: border-box; position: absolute;"
+    });
+    this.scheduleDom.append(new Div({
+      position: new Vector2(0, 0),
+      size: new Vector2(100, Schedule.TASK_HEIGHT),
+      text: this.data.name,
+      style: 'display: flex; align-items: center; justify-content: center; font-size: 15px; font-family: "Arial", sans-serif; box-sizing: border-box; position: absolute; '
+    }));
+    this.scheduleDom.append(this.schedule.dom);
+    this.characterDom = new Div({
+      position: new Vector2(0, 0)
+      // background: { color: 'white' },
+      // style: 'box-sizing: border-box; position: absolute; border-radius: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid black; box-sizing: border-box;',
+    });
+  }
+  setTime(time) {
+    const info = this.schedule.getInfoAtTime(time);
+    this.phase = info.phase;
+    this.activeTask = info.task;
+    const lastPosition = this.characterDom.transform.position;
+    if (lastPosition.subtract(info.position).magnitude() > 0) {
+      this.direction = info.position.subtract(lastPosition).normalise();
+    } else {
+      this.direction = void 0;
+    }
+    this.characterDom.transform.setPosition(info.position);
+    this.schedule.setTime(time);
+    this.tick();
+  }
+  tick() {
+  }
+};
+
+// ts/visuals/schedule.ts
+var VisualSchedule = class extends Schedule {
+  constructor(managers, person, data = {}) {
+    super(managers, person, data);
+  }
+  addTask(task) {
+    if (task instanceof VisualTask) {
+      this.taskList.push(task);
+    } else {
+      this.taskList.push(new VisualTask(task));
+    }
+  }
+  createIdleTask(start, end, location) {
+    return new IdleTask2({
+      start,
+      end,
+      location
+    });
+  }
+};
+
+// ts/visuals/visualPerson.ts
+var PersonVisual = class extends Person {
+  constructor(managers, data) {
+    super(managers, data, VisualSchedule);
+    this.data = data;
+  }
+  build() {
+    super.build();
+    this.characterDom.append(this.data.character);
+    this.characterDom.transform.setPosition(this.data.offset);
+  }
+  tick() {
+    super.tick();
+    switch (this.phase) {
+      case "travel":
+        this.data.character.value = Math.floor($.time / 200 % 8) + 20;
+        this.data.character.transform.setPosition(new Vector2(-50, -60));
+        break;
+      default:
+      case "task":
+        this.data.character.value = Math.floor($.time / this.activeTask.data.animationSpeed % this.activeTask.data.animationDuration) + this.activeTask.data.animationStart;
+        this.data.character.transform.setPosition(this.activeTask.data.animationOffset.add(new Vector2(-50, -60)));
+        break;
+    }
+    if (this.direction && this.direction.x !== 0) {
+      if (this.direction.x < 0) {
+        this.characterDom.transform.setScale(new Vector2(1, 1));
+      } else {
+        this.characterDom.transform.setScale(new Vector2(-1, 1));
+      }
+    }
+    this.characterDom.dom.style.zIndex = (2e3 - this.characterDom.transform.position.y).toString();
+  }
+};
+
 // ts/index.ts
 document.addEventListener("DOMContentLoaded", async () => {
   const g = new Container();
   document.body.appendChild(g.dom);
-  g.append(new LogicManager(g));
+  g.append(new LogicManager(g, { Person: PersonVisual }, getVisualPeople));
   g.start();
 });
 //# sourceMappingURL=index.js.map

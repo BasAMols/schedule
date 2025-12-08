@@ -5,29 +5,26 @@ import { Managers } from "../managers";
 import { Schedule } from "../tasks/schedule";
 import { Person, PersonType } from "./person";
 
-export class PeopleManager {
-    people: Person[] = [];
+export class PeopleManager<T extends Person> {
+    people: T[] = [];
     dom: Dom;
     timeDom: Dom;
     public constructor(
-        private managers: Managers,
-        people: PersonType[] = [],
+        protected managers: Managers<T>,
+        protected data: PersonType[] = [],
+        protected personClass: new (managers: Managers<T>, data: PersonType) => T,
     ) {
-        for (const person of people) {
-            this.addPerson(person);
-        }
-    }
-
-    addPerson(person: Person | PersonType): void {
-        if (person instanceof Person) {
-            this.people.push(person);
-        } else {
-            this.people.push(new Person(this.managers, person));
+        for (const person of this.data) {
+            if (person instanceof this.personClass) {
+                this.people.push(person);
+            } else {
+                this.people.push(new this.personClass(this.managers, person));
+            }
         }
     }
 
     getPerson(name: string): Person {
-        return this.people.find(person => person.name === name);
+        return this.people.find(person => person.data.name === name);
     }
 
     build(): void {
@@ -38,7 +35,6 @@ export class PeopleManager {
             this.dom.append(person.scheduleDom);
             person.scheduleDom.transform.setPosition(new Vector2(0, index * Schedule.TASK_HEIGHT));
             this.managers.mapManager.dom.append(person.characterDom);
-
         });
 
         this.timeDom = this.dom.append(new Div({

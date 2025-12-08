@@ -39,10 +39,10 @@ export class MapLocation {
             fill: 'black',
         }));
 
-        this.dom.append(new Svg('text', {
-            text: this.data.name,
-            x: this.data.position.x + 15,
-            y: this.data.position.y + 25,
-        }));
+        // this.dom.append(new Svg('text', {
+        //     text: this.data.name,
+        //     x: this.data.position.x + 15,
+        //     y: this.data.position.y + 25,
+        // }));
     }
 }

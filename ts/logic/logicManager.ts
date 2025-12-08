@@ -2,34 +2,41 @@ import { Vector2 } from "../util/math/vector2";
 import { MapManager } from "./map/mapManager";
 import { PeopleManager } from "./people/peopleManager";
 import { mapConnections, mapLocations } from "./map/list";
-import { getPeople } from "./people/list";
 import { Main } from "../util/game/main";
 import { Container } from "../util/game/container";
 import { Ticker } from "../util/game/ticker";
 import { Managers } from "./managers";
+import { Person, PersonType } from "./people/person";
 
-export class LogicManager extends Main {
+export interface LogicManagerClasses<P extends Person> {
+    Person: new (managers: Managers<P>, data: PersonType) => P;
+}
+
+export class LogicManager<P extends Person> extends Main {
     mapManager: MapManager;
-    peopleManager: PeopleManager;
+    peopleManager: PeopleManager<P>;
     ticker: void;
-    static SECONDS_PER_DAY = 40;
+    static SECONDS_PER_DAY = 80;
+    managers: Managers<P> = {
+        mapManager: null,
+        peopleManager: null,
+        routeManager: null,
+    };
     public constructor(
-        public container: Container
+        public container: Container,
+        protected classes: LogicManagerClasses<P>,
+        protected peopleData: (mapManager: MapManager) => PersonType[] = () => [],
     ) {
         super(container);
 
-        const managers: Partial<Managers> = {
-
-        }
-
-        this.mapManager = new MapManager(managers as Managers, mapLocations, mapConnections);
-        this.peopleManager = new PeopleManager(
-            managers as Managers, getPeople(this.mapManager)
+        this.mapManager = new MapManager(this.managers as Managers<P>, mapLocations, mapConnections);
+        this.peopleManager = new PeopleManager<P>(
+            this.managers as Managers<P>, this.peopleData(this.mapManager), this.classes.Person
         );
 
-        managers.mapManager = this.mapManager;
-        managers.peopleManager = this.peopleManager;
-        managers.routeManager = this.mapManager.routeManager;
+        this.managers.mapManager = this.mapManager;
+        this.managers.peopleManager = this.peopleManager;
+        this.managers.routeManager = this.mapManager.routeManager;
 
         this.mapManager.build();
         this.peopleManager.build();
@@ -37,13 +44,15 @@ export class LogicManager extends Main {
         this.container.append(this.mapManager.dom);
         this.container.append(this.peopleManager.dom);
 
-        this.setTime(3);
-
         this.ticker = new Ticker().addCallback(this.tick.bind(this));
     }
 
+    setup() {
+ 
+    }
+
     setTime(time: number): void {
-        this.peopleManager.setTime(time);
+        this.peopleManager.setTime(time +150);
     }
 
     tick(): void {

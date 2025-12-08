@@ -13,15 +13,18 @@ export interface ScheduleType {
 }
 
 export class Schedule {
-	public static readonly TASK_WIDTH = 60;
-	public static readonly TASK_HEIGHT = 40;
-	private table: Record<TimePeriod, Task>;
-	private taskList: Task[] = [];
-	private travels: Travel[] = [];
+	public static readonly TASK_WIDTH = 30;
+	public static readonly TASK_HEIGHT = 30;
+	
+	protected table: Record<TimePeriod, Task>;
+	protected taskList: Task[] = [];
+	protected travels: Travel[] = [];
+
 	dom: Div;
 	lineDom: Div;
 	debug: Div;
-	public constructor(private managers: Managers, public person: Person, public data: ScheduleType = {}) {
+
+	public constructor(protected managers: Managers, public person: Person, public data: ScheduleType = {}) {
 
 		if (data.tasks) for (const task of data.tasks) {
 			this.addTask(task);
@@ -87,7 +90,7 @@ export class Schedule {
 			} else if (to.data.priority === 0) {
 				travel.offset = 1;
 			} else {
-				travel.offset = 0.5 + (from.data.priority/2) - (to.data.priority/2);
+				travel.offset = 0.5 + (from.data.priority / 2) - (to.data.priority / 2);
 			}
 
 			travel.build();
@@ -140,10 +143,6 @@ export class Schedule {
 		}
 
 		const task = this.getTaskAtTime(time % 24);
-
-		if (task instanceof IdleTask) {
-			return { phase: 'idle', position: task.data.location.data.position, task: undefined };
-		}
 
 		return { phase: 'task', position: task.data.location.data.position, task: task };
 	}
