@@ -47,11 +47,11 @@ export class MapManager {
         this.dom.append(this.mapSvg);
         for (const connection of this.mapConnections) {
             connection.build();
-            this.mapSvg.append(connection.line);
+            // this.mapSvg.append(connection.line);
         }
         for (const location of Object.values(this.locations)) {
             location.build();
-            this.mapSvg.append(location.dom);
+            // this.mapSvg.append(location.dom);
         }
     }
 }

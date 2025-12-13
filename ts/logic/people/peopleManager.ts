@@ -29,6 +29,7 @@ export class PeopleManager<T extends Person> {
 
     build(): void {
         this.dom = new Div({
+            style: 'z-index: 20;',
         });
         this.people.forEach((person, index) => {
             person.build();

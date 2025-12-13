@@ -936,11 +936,9 @@ var MapManager = class {
     this.dom.append(this.mapSvg);
     for (const connection of this.mapConnections) {
       connection.build();
-      this.mapSvg.append(connection.line);
     }
     for (const location of Object.values(this.locations)) {
       location.build();
-      this.mapSvg.append(location.dom);
     }
   }
 };
@@ -964,7 +962,9 @@ var PeopleManager = class {
     return this.people.find((person) => person.data.name === name);
   }
   build() {
-    this.dom = new Div({});
+    this.dom = new Div({
+      style: "z-index: 20;"
+    });
     this.people.forEach((person, index) => {
       person.build();
       this.dom.append(person.scheduleDom);
@@ -990,30 +990,27 @@ var PeopleManager = class {
 
 // ts/logic/map/list.ts
 var mapLocations = {
-  bedroom1: new Vector2(400 + 60, 250),
-  bathroom1: new Vector2(400 + 60 + 60, 200),
-  bedroom2: new Vector2(300, 300),
-  bathroom2: new Vector2(300 - 60, 350),
-  hallway1: new Vector2(400, 300),
-  main: new Vector2(500, 300),
-  work: new Vector2(600, 300),
-  engine: new Vector2(500 - 60, 350)
+  cph_front: new Vector2(250, 655),
+  deck0: new Vector2(310, 662),
+  wheel: new Vector2(315, 659),
+  deck1: new Vector2(420, 670),
+  deck1Stair: new Vector2(430, 664),
+  deck2: new Vector2(520, 677),
+  deck3: new Vector2(700, 679),
+  deck4: new Vector2(870, 670),
+  gun3: new Vector2(515, 720),
+  gun3Stair: new Vector2(500, 715)
 };
 var mapConnections = [
-  {
-    from: "main",
-    to: "work",
-    path: PathCreator(
-      mapLocations.main,
-      { point: mapLocations.work, controlA: mapLocations.main.add(new Vector2(60, -50)), controlB: mapLocations.work.add(new Vector2(60, -50)) }
-    )
-  },
-  { from: "main", to: "engine" },
-  { from: "main", to: "hallway1" },
-  { from: "hallway1", to: "bedroom1" },
-  { from: "hallway1", to: "bedroom2" },
-  { from: "bedroom1", to: "bathroom1" },
-  { from: "bedroom2", to: "bathroom2" }
+  { from: "cph_front", to: "deck0" },
+  { from: "deck0", to: "deck1" },
+  { from: "deck0", to: "wheel" },
+  { from: "deck1", to: "deck2" },
+  { from: "deck1", to: "deck1Stair" },
+  { from: "deck1Stair", to: "gun3Stair" },
+  { from: "deck2", to: "deck3" },
+  { from: "deck3", to: "deck4" },
+  { from: "gun3Stair", to: "gun3" }
 ];
 
 // ts/util/game/main.ts
@@ -1142,6 +1139,143 @@ var Ticker = class {
 };
 var ticker = new Ticker();
 
+// ts/logic/scene/ship/ship.ts
+var ShipTheme = class extends Div {
+  constructor(layers, time) {
+    super({});
+    this.time = time;
+    this._open = false;
+    this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
+      const div = new Div({
+        background: {
+          image: "dist/images/ship/".concat(image, ".png"),
+          type: "image"
+        },
+        style: "opacity: 1; transition: opacity 0.1s ease-in-out;",
+        size: new Vector2(3840, 3200)
+      });
+      this.append(div);
+      return [layer, div];
+    }));
+    this.layers.back.style("z-index: 10");
+    this.layers.front.style("z-index: 40");
+    this.open = true;
+  }
+  get open() {
+    return this._open;
+  }
+  set open(value) {
+    if (value !== this._open) {
+      this.layers.front.style("opacity: ".concat(value ? 1 : 0));
+      this._open = value;
+    }
+  }
+  setTime(time) {
+    let opacity = 0;
+    if (this.time.easeInStart < this.time.easeOutStart) {
+      if (time < this.time.easeInStart || time > this.time.easeOutEnd) {
+        opacity = 0;
+      } else if (time > this.time.easeInEnd && time < this.time.easeOutStart) {
+        opacity = 1;
+      }
+      if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
+        opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
+      } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
+        opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
+      }
+    } else {
+      if (time < this.time.easeOutStart || time > this.time.easeInEnd) {
+        opacity = 1;
+      } else if (time > this.time.easeOutEnd && time < this.time.easeInStart) {
+        opacity = 0;
+      }
+      if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
+        opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
+      } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
+        opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
+      }
+    }
+    this.style("opacity: ".concat(opacity));
+  }
+};
+var ShipNight = class extends ShipTheme {
+  constructor() {
+    super({
+      back: "night_back",
+      front: "night_front"
+    }, {
+      easeInStart: 15,
+      easeInEnd: 21,
+      easeOutStart: 4,
+      easeOutEnd: 10
+    });
+  }
+};
+var ShipDay = class extends ShipTheme {
+  constructor() {
+    super({
+      back: "back",
+      front: "front"
+    }, {
+      easeInStart: 2,
+      easeInEnd: 7,
+      easeOutStart: 18,
+      easeOutEnd: 21
+    });
+  }
+};
+var Ship = class extends Div {
+  constructor() {
+    super({
+      size: new Vector2(3840, 3200),
+      scale: new Vector2(0.35, 0.35),
+      position: new Vector2(0, -250)
+    });
+    this.append(this.night = new ShipNight());
+    this.append(this.day = new ShipDay());
+  }
+  setTime(time) {
+    this.day.setTime(time % 24);
+    this.night.setTime(time % 24);
+    this.night.open = time > 22 || time <= 9;
+    this.day.open = time > 22 || time <= 9;
+  }
+};
+
+// ts/util/math/util.ts
+var Utils = class {
+  static easeColor(interval, from, to) {
+    return "rgba(".concat(from[0] * interval + to[0] * (1 - interval), ", ").concat(from[1] * interval + to[1] * (1 - interval), ", ").concat(from[2] * interval + to[2] * (1 - interval), ", ").concat(from[3] * interval + to[3] * (1 - interval), ")");
+  }
+  static colorToArray(color) {
+    const match = color.match(/^rgba?\((\d+),(\d+),(\d+),?(\d*)?\)$/);
+    if (!match) {
+      throw new Error("Invalid color: ".concat(color));
+    }
+    return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), match[4] ? parseInt(match[4]) : 1];
+  }
+};
+
+// ts/logic/scene/backgrounds/sky.ts
+var Sky = class extends Div {
+  constructor() {
+    super({
+      size: ["100%", "100%"],
+      background: {
+        color: "blue"
+      }
+    });
+    this.setTime(15);
+  }
+  setTime(time) {
+    const wave = Math.pow(Math.sin((time + 17) % 24 * Math.PI / 12) * 0.5 + 0.5, 2);
+    const color = Utils.easeColor(wave, [173, 202, 251, 1], [1, 2, 3, 1]);
+    this.background({
+      color
+    });
+  }
+};
+
 // ts/logic/logicManager.ts
 var _LogicManager = class _LogicManager extends Main {
   constructor(container, classes, peopleData = () => []) {
@@ -1154,6 +1288,10 @@ var _LogicManager = class _LogicManager extends Main {
       peopleManager: null,
       routeManager: null
     };
+    this.sky = new Sky();
+    this.container.append(this.sky);
+    this.ship = new Ship();
+    this.container.append(this.ship);
     this.mapManager = new MapManager(this.managers, mapLocations, mapConnections);
     this.peopleManager = new PeopleManager(
       this.managers,
@@ -1172,13 +1310,15 @@ var _LogicManager = class _LogicManager extends Main {
   setup() {
   }
   setTime(time) {
-    this.peopleManager.setTime(time + 150);
+    this.peopleManager.setTime(time);
+    this.ship.setTime(time);
+    this.sky.setTime(time % 24);
   }
   tick() {
-    this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY);
+    this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY + 8);
   }
 };
-_LogicManager.SECONDS_PER_DAY = 80;
+_LogicManager.SECONDS_PER_DAY = 10;
 var LogicManager = _LogicManager;
 
 // ts/util/game/transitions/transitionBase.ts
@@ -1652,21 +1792,6 @@ var SleepTask = class extends VisualTask {
     });
   }
 };
-var ShowerTask = class extends VisualTask {
-  constructor({ start, end, location }) {
-    super({
-      name: "Wash",
-      start,
-      end,
-      location,
-      color: "#c7c7ff",
-      priority: 1,
-      animationDuration: 4,
-      animationStart: 30,
-      animationSpeed: 1e3
-    });
-  }
-};
 var EatTask = class extends VisualTask {
   constructor({ start, end, location }) {
     super({
@@ -1687,11 +1812,6 @@ var EngineTask = class extends VisualTask {
     super({ name: "Office", start, end, location, color: "#e1e1e1" });
   }
 };
-var WorkTask = class extends VisualTask {
-  constructor({ start, end, location }) {
-    super({ name: "Work", start, end, location, color: "#dcb1cd" });
-  }
-};
 
 // ts/visuals/visualPeople.ts
 function getVisualPeople(mapManager) {
@@ -1699,14 +1819,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Dave",
       tasks: [
-        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("bedroom1") }),
-        new ShowerTask({ start: 7, end: 8, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 8, end: 9, location: mapManager.getLocation("main") }),
-        new WorkTask({ start: 9, end: 12, location: mapManager.getLocation("work") }),
-        new EngineTask({ start: 13, end: 17, location: mapManager.getLocation("engine") }),
-        new ShowerTask({ start: 17, end: 18, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 18, end: 20, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("bedroom1") })
+        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("gun3") }),
+        new EatTask({ start: 7, end: 10, location: mapManager.getLocation("deck2") }),
+        new EngineTask({ start: 10, end: 19, location: mapManager.getLocation("wheel") }),
+        new EatTask({ start: 19, end: 23, location: mapManager.getLocation("deck3") }),
+        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("gun3") })
       ],
       character: new Character({
         skin: "Male_Skin1",
@@ -1718,53 +1835,53 @@ function getVisualPeople(mapManager) {
         ]
       }),
       offset: new Vector2(0, 0)
-    },
-    {
-      name: "Jane",
-      tasks: [
-        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("bedroom1") }),
-        new ShowerTask({ start: 6, end: 7, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 7, end: 8, location: mapManager.getLocation("main") }),
-        new EngineTask({ start: 8, end: 11, location: mapManager.getLocation("engine") }),
-        new WorkTask({ start: 12, end: 16, location: mapManager.getLocation("work") }),
-        new ShowerTask({ start: 16, end: 17, location: mapManager.getLocation("bathroom1") }),
-        new EatTask({ start: 17, end: 19, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 21, end: 24, location: mapManager.getLocation("bedroom1") })
-      ],
-      character: new Character({
-        skin: "Female_Skin2",
-        layers: [
-          "Female_Hair/Female_Hair4",
-          "Female_Clothing/Corset",
-          "Female_Clothing/Boots",
-          "Female_Clothing/Skirt"
-        ]
-      }),
-      offset: new Vector2(10, -15)
-    },
-    {
-      name: "Andrew",
-      tasks: [
-        new EngineTask({ start: 0, end: 3, location: mapManager.getLocation("engine") }),
-        new ShowerTask({ start: 4, end: 5, location: mapManager.getLocation("bathroom2") }),
-        new EatTask({ start: 5, end: 7, location: mapManager.getLocation("main") }),
-        new SleepTask({ start: 8, end: 16, location: mapManager.getLocation("bedroom2") }),
-        new EatTask({ start: 16, end: 17, location: mapManager.getLocation("main") }),
-        new WorkTask({ start: 17, end: 20, location: mapManager.getLocation("work") }),
-        new ShowerTask({ start: 20, end: 21, location: mapManager.getLocation("bathroom2") }),
-        new EngineTask({ start: 22, end: 24, location: mapManager.getLocation("engine") })
-      ],
-      character: new Character({
-        skin: "Male_Skin3",
-        layers: [
-          "Male_Hair/Male_Hair3",
-          "Male_Clothing/Boots",
-          "Male_Clothing/Green_Shirt_v2",
-          "Male_Clothing/Pants"
-        ]
-      }),
-      offset: new Vector2(-15, 10)
     }
+    // {
+    //     name: "Jane",
+    //     tasks: [
+    //         new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("bedroom1") }),
+    //         new ShowerTask({ start: 6, end: 7, location: mapManager.getLocation("bathroom1") }),
+    //         new EatTask({ start: 7, end: 8, location: mapManager.getLocation("main") }),
+    //         new EngineTask({ start: 8, end: 11, location: mapManager.getLocation("engine") }),
+    //         new WorkTask({ start: 12, end: 16, location: mapManager.getLocation("work") }),
+    //         new ShowerTask({ start: 16, end: 17, location: mapManager.getLocation("bathroom1") }),
+    //         new EatTask({ start: 17, end: 19, location: mapManager.getLocation("main") }),
+    //         new SleepTask({ start: 21, end: 24, location: mapManager.getLocation("bedroom1") }),
+    //     ],
+    //     character: new Character({
+    //         skin: "Female_Skin2",
+    //         layers: [
+    //             "Female_Hair/Female_Hair4",
+    //             "Female_Clothing/Corset",
+    //             "Female_Clothing/Boots",
+    //             "Female_Clothing/Skirt",
+    //         ]
+    //     }),
+    //     offset: new Vector2(10, -15),
+    // },
+    // {
+    //     name: "Andrew",
+    //     tasks: [
+    //         new EngineTask({ start: 0, end: 3, location: mapManager.getLocation("engine") }),
+    //         new ShowerTask({ start: 4, end: 5, location: mapManager.getLocation("bathroom2") }),
+    //         new EatTask({ start: 5, end: 7, location: mapManager.getLocation("main") }),
+    //         new SleepTask({ start: 8, end: 16, location: mapManager.getLocation("bedroom2") }),
+    //         new EatTask({ start: 16, end: 17, location: mapManager.getLocation("main") }),
+    //         new WorkTask({ start: 17, end: 20, location: mapManager.getLocation("work") }),
+    //         new ShowerTask({ start: 20, end: 21, location: mapManager.getLocation("bathroom2") }),
+    //         new EngineTask({ start: 22, end: 24, location: mapManager.getLocation("engine") }),
+    //     ],
+    //     character: new Character({
+    //         skin: "Male_Skin3",
+    //         layers: [
+    //             "Male_Hair/Male_Hair3",
+    //             "Male_Clothing/Boots",
+    //             "Male_Clothing/Green_Shirt_v2",
+    //             "Male_Clothing/Pants",
+    //         ]
+    //     }),
+    //     offset: new Vector2(-15, 10),
+    // },
   ];
 }
 

@@ -7,6 +7,8 @@ import { Container } from "../util/game/container";
 import { Ticker } from "../util/game/ticker";
 import { Managers } from "./managers";
 import { Person, PersonType } from "./people/person";
+import { Ship } from "./scene/ship/ship";
+import { Sky } from "./scene/backgrounds/sky";
 
 export interface LogicManagerClasses<P extends Person> {
     Person: new (managers: Managers<P>, data: PersonType) => P;
@@ -16,20 +18,28 @@ export class LogicManager<P extends Person> extends Main {
     mapManager: MapManager;
     peopleManager: PeopleManager<P>;
     ticker: void;
-    static SECONDS_PER_DAY = 80;
+    static SECONDS_PER_DAY = 10;
     managers: Managers<P> = {
         mapManager: null,
         peopleManager: null,
         routeManager: null,
     };
+    ship: Ship;
+    sky: Sky;
     public constructor(
         public container: Container,
         protected classes: LogicManagerClasses<P>,
         protected peopleData: (mapManager: MapManager) => PersonType[] = () => [],
     ) {
         super(container);
+        this.sky = new Sky();
+        this.container.append(this.sky);
 
+        this.ship = new Ship();
+        this.container.append(this.ship);
+        
         this.mapManager = new MapManager(this.managers as Managers<P>, mapLocations, mapConnections);
+
         this.peopleManager = new PeopleManager<P>(
             this.managers as Managers<P>, this.peopleData(this.mapManager), this.classes.Person
         );
@@ -48,15 +58,17 @@ export class LogicManager<P extends Person> extends Main {
     }
 
     setup() {
- 
+
     }
 
     setTime(time: number): void {
-        this.peopleManager.setTime(time +150);
+        this.peopleManager.setTime(time);
+        this.ship.setTime(time);
+        this.sky.setTime(time % 24);
     }
 
     tick(): void {
-        this.setTime($.time *24 / 1000 / LogicManager.SECONDS_PER_DAY);
+        this.setTime(($.time * 24 / 1000 / LogicManager.SECONDS_PER_DAY) + 8);
     }
 }
 
