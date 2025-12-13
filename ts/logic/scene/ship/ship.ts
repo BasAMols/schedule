@@ -1,50 +1,50 @@
+import { RenderLayer } from "../../../render/renderLayer";
 import { Div } from "../../../util/html/div";
 import { Ease } from "../../../util/math/ease";
 import { Vector2 } from "../../../util/math/vector2";
+import { Managers } from "../../managers";
 import { TimePeriod } from "../../tasks/time";
 
 export type ShipThemeLayers = 'back' | 'front';
 
-export abstract class ShipTheme extends Div {
-    private layers: Record<ShipThemeLayers, Div>;
-    private _open: boolean = false;
-    public get open(): boolean {
-        return this._open;
-    }
-    public set open(value: boolean) {
-        if (value !== this._open) {
-            this.layers.front.style(`opacity: ${value ? 1 : 0}`);
-            this._open = value;
-        }
-    }
+export abstract class ShipTheme {
+    private layers: Record<ShipThemeLayers, {
+        div: Div;
+        renderLayer: RenderLayer;
+    }>;
     constructor(layers: Record<ShipThemeLayers, string>, protected time: {
         easeInStart: TimePeriod;
         easeInEnd: TimePeriod;
         easeOutStart: TimePeriod;
         easeOutEnd: TimePeriod;
-    }) {
-        super({
-        });
+    }, protected managers: Managers) {
         this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
             const div = new Div({
                 background: {
                     image: `dist/images/ship/${image}.png`,
                     type: 'image',
                 },
+                scale: new Vector2(0.35, 0.35),
                 style: 'opacity: 1; transition: opacity 0.1s ease-in-out;',
                 size: new Vector2(3840, 3200),
+                position: new Vector2(300, -120),
             });
-            this.append(div);
-            return [layer, div];
-        })) as Record<ShipThemeLayers, Div>;
+            return [layer, {
+                div,
+                renderLayer: new RenderLayer(div, 40),
+            }];
+        })) as Record<ShipThemeLayers, {
+            div: Div;
+            renderLayer: RenderLayer;
+        }>;
 
-        this.layers.back.style(`z-index: 10`);
-        this.layers.front.style(`z-index: 40`);
-        this.open = true;
+        this.managers.renderer.add(this.layers.back.renderLayer, 'ship', 40);
+        this.managers.renderer.add(this.layers.front.renderLayer, 'ship', 60);
     }
 
     setTime(time: number) {
         let opacity = 0;
+
         if (this.time.easeInStart < this.time.easeOutStart) {
             if (time < this.time.easeInStart || time > this.time.easeOutEnd) {
                 opacity = 0;
@@ -68,56 +68,79 @@ export abstract class ShipTheme extends Div {
                 opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
             }
         }
-        this.style(`opacity: ${opacity}`);
+
+        this.layers.back.renderLayer.opacity = opacity;
+        this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
+
+    }
+    private _open: number = 0;
+    public get open(): number {
+        return this._open;
+    }
+    public set open(value: number) {
+        this._open = value;
     }
 }
 
 export class ShipNight extends ShipTheme {
-    constructor() {
+    constructor(managers: Managers) {
         super({
             back: 'night_back',
             front: 'night_front',
         }, {
-            easeInStart: 15,
-            easeInEnd: 21,
-            easeOutStart: 4,
-            easeOutEnd: 10,
-        });
+            easeInStart: 16,
+            easeInEnd: 20,
+            easeOutStart: 5,
+            easeOutEnd: 9,
+        }, managers);
     }
 }
 export class ShipDay extends ShipTheme {
-    constructor() {
+    constructor(managers: Managers) {
         super({
             back: 'back',
             front: 'front',
         }, {
-            easeInStart: 2,
-            easeInEnd: 7,
-            easeOutStart: 18,
-            easeOutEnd: 21,
-        });
+            easeInStart: 5,
+            easeInEnd: 9,
+            easeOutStart: 16,
+            easeOutEnd: 20,
+        }, managers);
     }
 }
 
-export class Ship extends Div {
+export class Ship {
     day: ShipDay;
     night: ShipNight;
-    constructor() {
-        super({
-            size: new Vector2(3840, 3200),
-            scale: new Vector2(0.35, 0.35),
-            position: new Vector2(0, -250),
-        });
-
-        this.append((this.night = new ShipNight()));
-        this.append((this.day = new ShipDay()));
+    constructor(protected managers: Managers) {
+        this.night = new ShipNight(this.managers);
+        this.day = new ShipDay(this.managers);
     }
 
     setTime(time: number) {
         this.day.setTime(time % 24);
         this.night.setTime(time % 24);
 
-        this.night.open = time > 22 || time <= 9;
-        this.day.open = time > 22 || time <= 9;
+        // let open = (time < 9 || time > 19) ? 1 : 0;
+
+        // if (time >= 9 && time <= 10) open = 1-(time - 9) / 1;
+        // if (time >= 18 && time <= 19) open = (time - 18) / 1;
+
+        // this.day.open = open;
+        // this.night.open = open;
+
+
+
+
     }
+    private _open: boolean = false;
+    public get open(): boolean {
+        return this._open;
+    }
+    public set open(value: boolean) {
+        this._open = value;
+        this.day.open = Number(value);
+        this.night.open = Number(value);
+    }
+
 }

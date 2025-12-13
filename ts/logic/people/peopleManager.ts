@@ -29,13 +29,13 @@ export class PeopleManager<T extends Person> {
 
     build(): void {
         this.dom = new Div({
-            style: 'z-index: 20;',
+            size: new Vector2(850, this.people.length * Schedule.TASK_HEIGHT + Schedule.TASK_HEIGHT+20),
+            style: 'z-index: 20; background-color: white; padding: 10px;',
         });
         this.people.forEach((person, index) => {
             person.build();
             this.dom.append(person.scheduleDom);
             person.scheduleDom.transform.setPosition(new Vector2(0, index * Schedule.TASK_HEIGHT));
-            this.managers.mapManager.dom.append(person.characterDom);
         });
 
         this.timeDom = this.dom.append(new Div({

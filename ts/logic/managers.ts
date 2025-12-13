@@ -1,3 +1,4 @@
+import { Renderer } from "../render/renderer";
 import { MapManager } from "./map/mapManager";
 import { PeopleManager } from "./people/peopleManager";
 import { Person } from "./people/person";
@@ -7,5 +8,6 @@ export interface Managers<P extends Person = Person> {
     mapManager: MapManager;
     peopleManager: PeopleManager<P>;
     routeManager: RouteManager;
+    renderer: Renderer;
 };
 

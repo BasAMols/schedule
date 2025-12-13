@@ -963,13 +963,13 @@ var PeopleManager = class {
   }
   build() {
     this.dom = new Div({
-      style: "z-index: 20;"
+      size: new Vector2(850, this.people.length * Schedule.TASK_HEIGHT + Schedule.TASK_HEIGHT + 20),
+      style: "z-index: 20; background-color: white; padding: 10px;"
     });
     this.people.forEach((person, index) => {
       person.build();
       this.dom.append(person.scheduleDom);
       person.scheduleDom.transform.setPosition(new Vector2(0, index * Schedule.TASK_HEIGHT));
-      this.managers.mapManager.dom.append(person.characterDom);
     });
     this.timeDom = this.dom.append(new Div({
       position: new Vector2(0, this.people.length * Schedule.TASK_HEIGHT),
@@ -990,16 +990,16 @@ var PeopleManager = class {
 
 // ts/logic/map/list.ts
 var mapLocations = {
-  cph_front: new Vector2(250, 655),
-  deck0: new Vector2(310, 662),
-  wheel: new Vector2(315, 659),
-  deck1: new Vector2(420, 670),
-  deck1Stair: new Vector2(430, 664),
-  deck2: new Vector2(520, 677),
-  deck3: new Vector2(700, 679),
-  deck4: new Vector2(870, 670),
-  gun3: new Vector2(515, 720),
-  gun3Stair: new Vector2(500, 715)
+  cph_front: new Vector2(250 + 300, 655 + 130),
+  deck0: new Vector2(310 + 300, 662 + 130),
+  wheel: new Vector2(315 + 300, 659 + 130),
+  deck1: new Vector2(420 + 300, 670 + 130),
+  deck1Stair: new Vector2(430 + 300, 664 + 130),
+  deck2: new Vector2(520 + 300, 677 + 130),
+  deck3: new Vector2(700 + 300, 679 + 130),
+  deck4: new Vector2(870 + 300, 670 + 130),
+  gun3: new Vector2(515 + 300, 720 + 130),
+  gun3Stair: new Vector2(500 + 300, 715 + 130)
 };
 var mapConnections = [
   { from: "cph_front", to: "deck0" },
@@ -1139,36 +1139,64 @@ var Ticker = class {
 };
 var ticker = new Ticker();
 
+// ts/render/renderLayer.ts
+var RenderLayer = class extends Div {
+  constructor(element, depth, options = {}) {
+    super();
+    this.element = element;
+    this._opacity = 1;
+    this.append(element);
+    this.opacity = 1;
+    this.depth = depth;
+    this.setOptions(options);
+  }
+  get depth() {
+    return this._depth;
+  }
+  set depth(value) {
+    this._depth = value;
+    this.style("z-index: ".concat(this._depth, ";"));
+  }
+  get opacity() {
+    return this._opacity;
+  }
+  set opacity(value) {
+    if (value !== this._opacity) {
+      this._opacity = value;
+      this.style("opacity: ".concat(value));
+    }
+  }
+  setOptions(options) {
+    if (options.transition) {
+      this.style("transition: opacity ".concat(options.transition, "s ease-in-out;"));
+    }
+  }
+};
+
 // ts/logic/scene/ship/ship.ts
-var ShipTheme = class extends Div {
-  constructor(layers, time) {
-    super({});
+var ShipTheme = class {
+  constructor(layers, time, managers) {
     this.time = time;
-    this._open = false;
+    this.managers = managers;
+    this._open = 0;
     this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
       const div = new Div({
         background: {
           image: "dist/images/ship/".concat(image, ".png"),
           type: "image"
         },
+        scale: new Vector2(0.35, 0.35),
         style: "opacity: 1; transition: opacity 0.1s ease-in-out;",
-        size: new Vector2(3840, 3200)
+        size: new Vector2(3840, 3200),
+        position: new Vector2(300, -120)
       });
-      this.append(div);
-      return [layer, div];
+      return [layer, {
+        div,
+        renderLayer: new RenderLayer(div, 40)
+      }];
     }));
-    this.layers.back.style("z-index: 10");
-    this.layers.front.style("z-index: 40");
-    this.open = true;
-  }
-  get open() {
-    return this._open;
-  }
-  set open(value) {
-    if (value !== this._open) {
-      this.layers.front.style("opacity: ".concat(value ? 1 : 0));
-      this._open = value;
-    }
+    this.managers.renderer.add(this.layers.back.renderLayer, "ship", 40);
+    this.managers.renderer.add(this.layers.front.renderLayer, "ship", 60);
   }
   setTime(time) {
     let opacity = 0;
@@ -1195,50 +1223,60 @@ var ShipTheme = class extends Div {
         opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
       }
     }
-    this.style("opacity: ".concat(opacity));
+    this.layers.back.renderLayer.opacity = opacity;
+    this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
+  }
+  get open() {
+    return this._open;
+  }
+  set open(value) {
+    this._open = value;
   }
 };
 var ShipNight = class extends ShipTheme {
-  constructor() {
+  constructor(managers) {
     super({
       back: "night_back",
       front: "night_front"
     }, {
-      easeInStart: 15,
-      easeInEnd: 21,
-      easeOutStart: 4,
-      easeOutEnd: 10
-    });
+      easeInStart: 16,
+      easeInEnd: 20,
+      easeOutStart: 5,
+      easeOutEnd: 9
+    }, managers);
   }
 };
 var ShipDay = class extends ShipTheme {
-  constructor() {
+  constructor(managers) {
     super({
       back: "back",
       front: "front"
     }, {
-      easeInStart: 2,
-      easeInEnd: 7,
-      easeOutStart: 18,
-      easeOutEnd: 21
-    });
+      easeInStart: 5,
+      easeInEnd: 9,
+      easeOutStart: 16,
+      easeOutEnd: 20
+    }, managers);
   }
 };
-var Ship = class extends Div {
-  constructor() {
-    super({
-      size: new Vector2(3840, 3200),
-      scale: new Vector2(0.35, 0.35),
-      position: new Vector2(0, -250)
-    });
-    this.append(this.night = new ShipNight());
-    this.append(this.day = new ShipDay());
+var Ship = class {
+  constructor(managers) {
+    this.managers = managers;
+    this._open = false;
+    this.night = new ShipNight(this.managers);
+    this.day = new ShipDay(this.managers);
   }
   setTime(time) {
     this.day.setTime(time % 24);
     this.night.setTime(time % 24);
-    this.night.open = time > 22 || time <= 9;
-    this.day.open = time > 22 || time <= 9;
+  }
+  get open() {
+    return this._open;
+  }
+  set open(value) {
+    this._open = value;
+    this.day.open = Number(value);
+    this.night.open = Number(value);
   }
 };
 
@@ -1256,23 +1294,186 @@ var Utils = class {
   }
 };
 
+// ts/logic/scene/backgrounds/horizon.ts
+var Horizon = class extends Div {
+  constructor(managers) {
+    super({
+      position: new Vector2(0, 1080 - 150 - 150),
+      size: ["1920px", "150px"],
+      background: {
+        color: "rgb(28 42 58 / 85%)"
+      }
+    });
+    this.managers = managers;
+    this.managers.renderer.add(this, "bg", 40);
+    this.managers.renderer.add(new Div({
+      position: new Vector2(0, 1080 - 150),
+      size: ["1920px", "150px"],
+      background: {
+        color: "rgb(28 42 58 / 85%)"
+      }
+    }), "overlay", 40);
+  }
+};
+
+// ts/logic/scene/backgrounds/moon.ts
+var Moon = class extends Div {
+  constructor(managers) {
+    super({
+      size: ["1920px", "800px"],
+      style: "overflow: hidden;"
+    });
+    this.managers = managers;
+    this.moon = new Div({
+      size: ["90px", "90px"],
+      background: {
+        color: "rgb(255, 255, 255)"
+      },
+      anchor: new Vector2(45, 45),
+      style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 50px rgb(255, 255, 255)) blur(1px); margin-top: -45px; margin-left: -45px; "
+    });
+    this.managers.renderer.add(this, "bg", 35);
+    this.append(this.moon);
+    this.reflectionWrap = new Div({
+      size: ["1920px", "300px"],
+      position: new Vector2(0, 1080 - 300),
+      style: "overflow: hidden;"
+    });
+    this.reflection = new Div({
+      size: ["180px", "180px"],
+      background: {
+        color: "rgba(255, 255, 255, 0.36)"
+      },
+      anchor: new Vector2(90, 90),
+      style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 50px rgb(255, 255, 255)) blur(100px) ; margin-top: -90px; margin-left: -90px; "
+    });
+    this.reflectionWrap.append(this.reflection);
+    this.managers.renderer.add(this.reflectionWrap, "overlay", 50);
+  }
+  setTime(time) {
+    const p = new Vector2(0, -1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+    this.moon.transform.setPosition(p);
+    const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
+    let o = 1 - (p2.y - 300) / 400;
+    this.reflection.transform.setPosition(p2);
+    this.reflection.style("opacity: ".concat(o, ";"));
+  }
+};
+
+// ts/logic/scene/backgrounds/sun.ts
+var Sun = class extends Div {
+  constructor(managers) {
+    super({
+      size: ["1920px", "800px"],
+      style: "overflow: hidden;"
+    });
+    this.managers = managers;
+    this.sun = new Div({
+      size: ["200px", "200px"],
+      background: {
+        color: "rgba(244, 244, 73, 0.5)"
+      },
+      anchor: new Vector2(100, 100),
+      style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 100px rgba(244, 244, 73, 1)) blur(10px); margin-top: -100px; margin-left: -100px; "
+    });
+    this.managers.renderer.add(this, "bg", 30);
+    this.append(this.sun);
+    this.reflectionWrap = new Div({
+      size: ["1920px", "300px"],
+      position: new Vector2(0, 1080 - 300),
+      style: "overflow: hidden;"
+    });
+    this.reflection = new Div({
+      size: ["500px", "500px"],
+      background: {
+        color: "rgba(244, 244, 73, 0.36)"
+      },
+      anchor: new Vector2(90, 90),
+      style: "position: absolute; border-radius: 50%; filter: blur(300px) ; margin-top: -250px; margin-left: -250px; "
+    });
+    this.reflectionWrap.append(this.reflection);
+    this.managers.renderer.add(this.reflectionWrap, "overlay", 50);
+  }
+  setTime(time) {
+    const p = new Vector2(0, 1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+    this.sun.transform.setPosition(p);
+    const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
+    let o = 1 - (p2.y - 100) / 400;
+    this.reflection.transform.setPosition(p2);
+    this.reflection.style("opacity: ".concat(o, ";"));
+  }
+};
+
 // ts/logic/scene/backgrounds/sky.ts
 var Sky = class extends Div {
-  constructor() {
+  constructor(managers) {
     super({
-      size: ["100%", "100%"],
+      size: ["1920px", "1080px"],
       background: {
         color: "blue"
       }
     });
+    this.managers = managers;
+    this.managers.renderer.add(this, "bg", 25);
+    this.sun = new Sun(this.managers);
+    this.moon = new Moon(this.managers);
+    this.horizon = new Horizon(this.managers);
     this.setTime(15);
   }
   setTime(time) {
     const wave = Math.pow(Math.sin((time + 17) % 24 * Math.PI / 12) * 0.5 + 0.5, 2);
-    const color = Utils.easeColor(wave, [173, 202, 251, 1], [1, 2, 3, 1]);
+    const color = Utils.easeColor(wave, [173, 202, 251, 1], [10, 20, 30, 1]);
     this.background({
       color
     });
+    this.sun.setTime(time);
+    this.moon.setTime(time);
+  }
+};
+
+// ts/render/renderer.ts
+var Renderer = class extends Div {
+  constructor(wrappers) {
+    super({
+      classNames: ["renderer"],
+      style: "overflow: hidden;width: 1920px; height: 1080px;"
+    });
+    this.wrappers = {};
+    Object.entries(wrappers).forEach(([name, depth]) => {
+      const div = new Div({
+        classNames: [name],
+        style: "position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+      });
+      this.wrappers[name] = {
+        div,
+        depth
+      };
+      div.style("z-index: ".concat(depth, ";"));
+      this.append(this.wrappers[name].div);
+    });
+  }
+  add(element, wrapperName, depth, options) {
+    let layer;
+    if (element instanceof RenderLayer) {
+      layer = element;
+      if (depth) {
+        layer.depth = depth;
+      }
+      if (options) {
+        layer.setOptions(options);
+      }
+    } else {
+      layer = new RenderLayer(element, depth != null ? depth : 0, options);
+    }
+    this.wrappers[wrapperName].div.append(layer);
+  }
+  getWrapper(wrapperName) {
+    return this.wrappers[wrapperName].div;
+  }
+  resize() {
+    super.resize();
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    this.transform.setScale(scale);
   }
 };
 
@@ -1286,12 +1487,18 @@ var _LogicManager = class _LogicManager extends Main {
     this.managers = {
       mapManager: null,
       peopleManager: null,
-      routeManager: null
+      routeManager: null,
+      renderer: new Renderer({
+        bg: 10,
+        world: 20,
+        ship: 30,
+        overlay: 30,
+        ui: 40
+      })
     };
-    this.sky = new Sky();
-    this.container.append(this.sky);
-    this.ship = new Ship();
-    this.container.append(this.ship);
+    container.append(this.managers.renderer);
+    this.sky = new Sky(this.managers);
+    this.ship = new Ship(this.managers);
     this.mapManager = new MapManager(this.managers, mapLocations, mapConnections);
     this.peopleManager = new PeopleManager(
       this.managers,
@@ -1303,22 +1510,41 @@ var _LogicManager = class _LogicManager extends Main {
     this.managers.routeManager = this.mapManager.routeManager;
     this.mapManager.build();
     this.peopleManager.build();
-    this.container.append(this.mapManager.dom);
-    this.container.append(this.peopleManager.dom);
+    this.managers.renderer.add(this.peopleManager.dom, "ui", 1);
     this.ticker = new Ticker().addCallback(this.tick.bind(this));
+    this.shipLayer = this.managers.renderer.getWrapper("ship");
+    this.shipLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+    this.container.dom.addEventListener("click", () => {
+      this.ship.open = !this.ship.open;
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "s") {
+        this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
+      }
+    });
+    this.container.dom.addEventListener("resize", () => {
+      this.managers.renderer.resize();
+    });
   }
   setup() {
   }
   setTime(time) {
-    this.peopleManager.setTime(time);
-    this.ship.setTime(time);
+    this.peopleManager.setTime(time % 24);
+    this.ship.setTime(time % 24);
     this.sky.setTime(time % 24);
+    const waveRotation = 1;
+    const waveTime = 1e3;
+    const waveHeight = 10;
+    const wave = Math.sin($.time / waveTime);
+    const wave2 = Math.sin(($.time - 800) / 1e3);
+    this.shipLayer.transform.setRotation(wave * waveRotation);
+    this.shipLayer.transform.setPosition(0, wave2 * waveHeight);
   }
   tick() {
-    this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY + 8);
+    this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY + 16);
   }
 };
-_LogicManager.SECONDS_PER_DAY = 10;
+_LogicManager.SECONDS_PER_DAY = 50;
 var LogicManager = _LogicManager;
 
 // ts/util/game/transitions/transitionBase.ts
@@ -1812,6 +2038,11 @@ var EngineTask = class extends VisualTask {
     super({ name: "Office", start, end, location, color: "#e1e1e1" });
   }
 };
+var WorkTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({ name: "Work", start, end, location, color: "#dcb1cd" });
+  }
+};
 
 // ts/visuals/visualPeople.ts
 function getVisualPeople(mapManager) {
@@ -1819,11 +2050,10 @@ function getVisualPeople(mapManager) {
     {
       name: "Dave",
       tasks: [
-        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("gun3") }),
-        new EatTask({ start: 7, end: 10, location: mapManager.getLocation("deck2") }),
-        new EngineTask({ start: 10, end: 19, location: mapManager.getLocation("wheel") }),
-        new EatTask({ start: 19, end: 23, location: mapManager.getLocation("deck3") }),
-        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("gun3") })
+        new EngineTask({ start: 0, end: 8, location: mapManager.getLocation("wheel") }),
+        new EatTask({ start: 8, end: 10, location: mapManager.getLocation("deck3") }),
+        new SleepTask({ start: 10, end: 18, location: mapManager.getLocation("gun3") }),
+        new WorkTask({ start: 18, end: 22, location: mapManager.getLocation("deck4") })
       ],
       character: new Character({
         skin: "Male_Skin1",
@@ -1835,53 +2065,47 @@ function getVisualPeople(mapManager) {
         ]
       }),
       offset: new Vector2(0, 0)
+    },
+    {
+      name: "Jane",
+      tasks: [
+        new SleepTask({ start: 0, end: 2, location: mapManager.getLocation("gun3") }),
+        new WorkTask({ start: 2, end: 6, location: mapManager.getLocation("deck2") }),
+        new EngineTask({ start: 8, end: 16, location: mapManager.getLocation("wheel") }),
+        new EatTask({ start: 16, end: 18, location: mapManager.getLocation("deck3") }),
+        new SleepTask({ start: 18, end: 24, location: mapManager.getLocation("gun3") })
+      ],
+      character: new Character({
+        skin: "Female_Skin2",
+        layers: [
+          "Female_Hair/Female_Hair4",
+          "Female_Clothing/Corset",
+          "Female_Clothing/Boots",
+          "Female_Clothing/Skirt"
+        ]
+      }),
+      offset: new Vector2(10, -15)
+    },
+    {
+      name: "Andrew",
+      tasks: [
+        new EatTask({ start: 0, end: 1, location: mapManager.getLocation("deck3") }),
+        new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("gun3") }),
+        new WorkTask({ start: 10, end: 14, location: mapManager.getLocation("deck2") }),
+        new EngineTask({ start: 15, end: 22, location: mapManager.getLocation("wheel") }),
+        new EatTask({ start: 23, end: 24, location: mapManager.getLocation("deck3") })
+      ],
+      character: new Character({
+        skin: "Male_Skin3",
+        layers: [
+          "Male_Hair/Male_Hair3",
+          "Male_Clothing/Boots",
+          "Male_Clothing/Green_Shirt_v2",
+          "Male_Clothing/Pants"
+        ]
+      }),
+      offset: new Vector2(-15, 10)
     }
-    // {
-    //     name: "Jane",
-    //     tasks: [
-    //         new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("bedroom1") }),
-    //         new ShowerTask({ start: 6, end: 7, location: mapManager.getLocation("bathroom1") }),
-    //         new EatTask({ start: 7, end: 8, location: mapManager.getLocation("main") }),
-    //         new EngineTask({ start: 8, end: 11, location: mapManager.getLocation("engine") }),
-    //         new WorkTask({ start: 12, end: 16, location: mapManager.getLocation("work") }),
-    //         new ShowerTask({ start: 16, end: 17, location: mapManager.getLocation("bathroom1") }),
-    //         new EatTask({ start: 17, end: 19, location: mapManager.getLocation("main") }),
-    //         new SleepTask({ start: 21, end: 24, location: mapManager.getLocation("bedroom1") }),
-    //     ],
-    //     character: new Character({
-    //         skin: "Female_Skin2",
-    //         layers: [
-    //             "Female_Hair/Female_Hair4",
-    //             "Female_Clothing/Corset",
-    //             "Female_Clothing/Boots",
-    //             "Female_Clothing/Skirt",
-    //         ]
-    //     }),
-    //     offset: new Vector2(10, -15),
-    // },
-    // {
-    //     name: "Andrew",
-    //     tasks: [
-    //         new EngineTask({ start: 0, end: 3, location: mapManager.getLocation("engine") }),
-    //         new ShowerTask({ start: 4, end: 5, location: mapManager.getLocation("bathroom2") }),
-    //         new EatTask({ start: 5, end: 7, location: mapManager.getLocation("main") }),
-    //         new SleepTask({ start: 8, end: 16, location: mapManager.getLocation("bedroom2") }),
-    //         new EatTask({ start: 16, end: 17, location: mapManager.getLocation("main") }),
-    //         new WorkTask({ start: 17, end: 20, location: mapManager.getLocation("work") }),
-    //         new ShowerTask({ start: 20, end: 21, location: mapManager.getLocation("bathroom2") }),
-    //         new EngineTask({ start: 22, end: 24, location: mapManager.getLocation("engine") }),
-    //     ],
-    //     character: new Character({
-    //         skin: "Male_Skin3",
-    //         layers: [
-    //             "Male_Hair/Male_Hair3",
-    //             "Male_Clothing/Boots",
-    //             "Male_Clothing/Green_Shirt_v2",
-    //             "Male_Clothing/Pants",
-    //         ]
-    //     }),
-    //     offset: new Vector2(-15, 10),
-    // },
   ];
 }
 
@@ -1923,6 +2147,7 @@ var Person = class {
       // background: { color: 'white' },
       // style: 'box-sizing: border-box; position: absolute; border-radius: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid black; box-sizing: border-box;',
     });
+    this.managers.renderer.add(this.characterDom, "ship", 50);
   }
   setTime(time) {
     const info = this.schedule.getInfoAtTime(time);
@@ -1994,7 +2219,6 @@ var PersonVisual = class extends Person {
         this.characterDom.transform.setScale(new Vector2(-1, 1));
       }
     }
-    this.characterDom.dom.style.zIndex = (2e3 - this.characterDom.transform.position.y).toString();
   }
 };
 

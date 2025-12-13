@@ -47,9 +47,5 @@ export class PersonVisual extends Person {
                 this.characterDom.transform.setScale(new Vector2(-1, 1));
             }
         }
-
-        this.characterDom.dom.style.zIndex = (2000 - this.characterDom.transform.position.y).toString();
-
     }
-
 }

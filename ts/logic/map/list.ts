@@ -3,18 +3,16 @@ import { MapConnectionType } from "./mapConnection";
 import { PathCreator } from "../../util/pathCreator";
 
 export const mapLocations = {
-    cph_front: new Vector2(250, 655),
-    deck0: new Vector2(310, 662),
-    wheel: new Vector2(315, 659),
-    deck1: new Vector2(420, 670),
-    deck1Stair: new Vector2(430, 664),
-    deck2: new Vector2(520, 677),
-    deck3: new Vector2(700, 679),
-    deck4: new Vector2(870, 670),
-
-    gun3: new Vector2(515, 720),
-    gun3Stair: new Vector2(500, 715),
-    
+    cph_front: new Vector2(250+300, 655+130),
+    deck0: new Vector2(310+300, 662+130),
+    wheel: new Vector2(315+300, 659+130),
+    deck1: new Vector2(420+300, 670+130),
+    deck1Stair: new Vector2(430+300, 664+130),
+    deck2: new Vector2(520+300, 677+130),
+    deck3: new Vector2(700+300, 679+130),
+    deck4: new Vector2(870+300, 670+130),
+    gun3: new Vector2(515+300, 720+130),
+    gun3Stair: new Vector2(500+300, 715+130),
 }
 
 export const mapConnections = [

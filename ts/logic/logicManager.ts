@@ -9,6 +9,9 @@ import { Managers } from "./managers";
 import { Person, PersonType } from "./people/person";
 import { Ship } from "./scene/ship/ship";
 import { Sky } from "./scene/backgrounds/sky";
+import { Renderer } from "../render/renderer";
+import { RenderLayer } from "../render/renderLayer";
+import { Div } from "../util/html/div";
 
 export interface LogicManagerClasses<P extends Person> {
     Person: new (managers: Managers<P>, data: PersonType) => P;
@@ -18,26 +21,31 @@ export class LogicManager<P extends Person> extends Main {
     mapManager: MapManager;
     peopleManager: PeopleManager<P>;
     ticker: void;
-    static SECONDS_PER_DAY = 10;
+    static SECONDS_PER_DAY = 50;
     managers: Managers<P> = {
         mapManager: null,
         peopleManager: null,
         routeManager: null,
+        renderer: new Renderer({
+            bg: 10,
+            world: 20,
+            ship: 30,
+            overlay: 30,
+            ui: 40,
+        }),
     };
     ship: Ship;
     sky: Sky;
+    shipLayer: Div;
     public constructor(
         public container: Container,
         protected classes: LogicManagerClasses<P>,
         protected peopleData: (mapManager: MapManager) => PersonType[] = () => [],
     ) {
         super(container);
-        this.sky = new Sky();
-        this.container.append(this.sky);
-
-        this.ship = new Ship();
-        this.container.append(this.ship);
-        
+        container.append(this.managers.renderer);
+        this.sky = new Sky(this.managers);
+        this.ship = new Ship(this.managers);
         this.mapManager = new MapManager(this.managers as Managers<P>, mapLocations, mapConnections);
 
         this.peopleManager = new PeopleManager<P>(
@@ -50,11 +58,23 @@ export class LogicManager<P extends Person> extends Main {
 
         this.mapManager.build();
         this.peopleManager.build();
-
-        this.container.append(this.mapManager.dom);
-        this.container.append(this.peopleManager.dom);
+        this.managers.renderer.add(this.peopleManager.dom, 'ui', 1);
 
         this.ticker = new Ticker().addCallback(this.tick.bind(this));
+        this.shipLayer = this.managers.renderer.getWrapper('ship');
+        this.shipLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+
+        this.container.dom.addEventListener('click', () => {
+            this.ship.open = !this.ship.open;
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 's') {
+                this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
+            }
+        });
+        this.container.dom.addEventListener('resize', () => {
+            this.managers.renderer.resize();
+        });
     }
 
     setup() {
@@ -62,13 +82,20 @@ export class LogicManager<P extends Person> extends Main {
     }
 
     setTime(time: number): void {
-        this.peopleManager.setTime(time);
-        this.ship.setTime(time);
+        this.peopleManager.setTime(time % 24);
+        this.ship.setTime(time % 24);
         this.sky.setTime(time % 24);
+        const waveRotation = 1;
+        const waveTime = 1000;
+        const waveHeight = 10;
+        const wave = Math.sin($.time / waveTime);
+        const wave2 = Math.sin(($.time - 800) / 1000);
+        this.shipLayer.transform.setRotation(wave * waveRotation);
+        this.shipLayer.transform.setPosition(0, wave2 * waveHeight);
     }
 
     tick(): void {
-        this.setTime(($.time * 24 / 1000 / LogicManager.SECONDS_PER_DAY) + 8);
+        this.setTime(($.time * 24 / 1000 / LogicManager.SECONDS_PER_DAY) + 16);
     }
 }
 

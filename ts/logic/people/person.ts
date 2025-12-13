@@ -1,3 +1,4 @@
+import { RenderLayer } from "../../render/renderLayer";
 import { Div } from "../../util/html/div";
 import { Vector2 } from "../../util/math/vector2";
 import { Character } from "../../visuals/character";
@@ -58,6 +59,7 @@ export class Person {
             // background: { color: 'white' },
             // style: 'box-sizing: border-box; position: absolute; border-radius: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid black; box-sizing: border-box;',
         });
+        this.managers.renderer.add(this.characterDom, 'ship', 50);
 
         // this.characterDom.append(new Div({
         //     text: this.name,
@@ -80,7 +82,6 @@ export class Person {
             this.direction = undefined;
         }
         this.characterDom.transform.setPosition(info.position);
-
 
         this.schedule.setTime(time);
         this.tick();
