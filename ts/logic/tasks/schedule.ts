@@ -15,7 +15,7 @@ export interface ScheduleType {
 export class Schedule {
 	public static readonly TASK_WIDTH = 30;
 	public static readonly TASK_HEIGHT = 30;
-	
+
 	protected table: Record<TimePeriod, Task>;
 	protected taskList: Task[] = [];
 	protected travels: Travel[] = [];
@@ -143,7 +143,6 @@ export class Schedule {
 		}
 
 		const task = this.getTaskAtTime(time % 24);
-
-		return { phase: 'task', position: task.data.location.data.position, task: task };
+		return { phase: 'task', position: task?.data.location.data.position ?? new Vector2(0, 0), task: task };
 	}
 }

@@ -2,6 +2,7 @@ import { RendererWrappers } from "../../../render/renderer";
 import { RenderLayer } from "../../../render/renderLayer";
 import { Div } from "../../../util/html/div";
 import { Ease } from "../../../util/math/ease";
+import { timeEaser } from "../../../util/math/timeEaser";
 import { Vector2 } from "../../../util/math/vector2";
 import { Managers } from "../../managers";
 import { TimePeriod } from "../../tasks/time";
@@ -13,12 +14,7 @@ export abstract class ShipTheme {
         div: Div;
         renderLayer: RenderLayer;
     }>;
-    constructor(layers: Record<ShipThemeLayers, string>, protected time: {
-        easeInStart: TimePeriod;
-        easeInEnd: TimePeriod;
-        easeOutStart: TimePeriod;
-        easeOutEnd: TimePeriod;
-    }, protected managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
+    constructor(layers: Record<ShipThemeLayers, string>, protected time: [number, number][], protected managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
             const div = new Div({
                 background: {
@@ -44,32 +40,7 @@ export abstract class ShipTheme {
     }
 
     setTime(time: number) {
-        let opacity = 0;
-
-        if (this.time.easeInStart < this.time.easeOutStart) {
-            if (time < this.time.easeInStart || time > this.time.easeOutEnd) {
-                opacity = 0;
-            } else if (time > this.time.easeInEnd && time < this.time.easeOutStart) {
-                opacity = 1;
-            }
-            if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
-                opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
-            } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
-                opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
-            }
-        } else {
-            if (time < this.time.easeOutStart || time > this.time.easeInEnd) {
-                opacity = 1;
-            } else if (time > this.time.easeOutEnd && time < this.time.easeInStart) {
-                opacity = 0;
-            }
-            if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
-                opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
-            } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
-                opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
-            }
-        }
-
+        let opacity = timeEaser(time % 24, this.time, 24);
         this.layers.back.renderLayer.opacity = opacity;
         this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
 
@@ -88,12 +59,12 @@ export class ShipNight extends ShipTheme {
         super({
             back: 'night_back',
             front: 'night_front',
-        }, {
-            easeInStart: 16,
-            easeInEnd: 20,
-            easeOutStart: 5,
-            easeOutEnd: 9,
-        }, managers, scale, layer);
+        }, [
+            [5, 1],
+            [10, 0],
+            [15, 0],
+            [20, 1],
+        ], managers, scale, layer);
     }
 }
 export class ShipDay extends ShipTheme {
@@ -101,12 +72,12 @@ export class ShipDay extends ShipTheme {
         super({
             back: 'back',
             front: 'front',
-        }, {
-            easeInStart: 5,
-            easeInEnd: 9,
-            easeOutStart: 16,
-            easeOutEnd: 20,
-        }, managers, scale, layer);
+        }, [
+            [5, 0],
+            [10, 1],
+            [15, 1],
+            [20, 0],
+        ], managers, scale, layer);
     }
 }
 

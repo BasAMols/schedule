@@ -686,6 +686,7 @@ var _Schedule = class _Schedule {
     this.lineDom.transform.setPosition(new Vector2(time % 24 / 24 * (_Schedule.TASK_WIDTH * 24), 0));
   }
   getInfoAtTime(time) {
+    var _a;
     for (const travel of this.travels) {
       const position = travel.getTimePostion(time % 24);
       if (position) {
@@ -693,7 +694,7 @@ var _Schedule = class _Schedule {
       }
     }
     const task = this.getTaskAtTime(time % 24);
-    return { phase: "task", position: task.data.location.data.position, task };
+    return { phase: "task", position: (_a = task == null ? void 0 : task.data.location.data.position) != null ? _a : new Vector2(0, 0), task };
   }
 };
 _Schedule.TASK_WIDTH = 30;
@@ -1173,6 +1174,38 @@ var RenderLayer = class extends Div {
   }
 };
 
+// ts/util/math/timeEaser.ts
+function timeEaser(value, keyframes, range = 1) {
+  if (keyframes.length === 0) {
+    return 0;
+  }
+  if (keyframes.length === 1) {
+    return keyframes[0][1];
+  }
+  const sorted = [...keyframes].sort((a, b) => a[0] - b[0]);
+  if (value <= sorted[0][0]) {
+    return sorted[0][1];
+  }
+  if (value >= sorted[sorted.length - 1][0]) {
+    return sorted[sorted.length - 1][1];
+  }
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const [time1, val1] = sorted[i];
+    const [time2, val2] = sorted[i + 1];
+    if (time1 === time2) {
+      if (value <= time1) {
+        return val1;
+      }
+      continue;
+    }
+    if (value >= time1 && value <= time2) {
+      const t = (value - time1) / (time2 - time1);
+      return val1 + (val2 - val1) * t;
+    }
+  }
+  return sorted[sorted.length - 1][1];
+}
+
 // ts/logic/scene/ship/ship.ts
 var ShipTheme = class {
   constructor(layers, time, managers, scale = 0.35, layer = "ship") {
@@ -1199,30 +1232,7 @@ var ShipTheme = class {
     this.managers.renderer.add(this.layers.front.renderLayer, layer, 60);
   }
   setTime(time) {
-    let opacity = 0;
-    if (this.time.easeInStart < this.time.easeOutStart) {
-      if (time < this.time.easeInStart || time > this.time.easeOutEnd) {
-        opacity = 0;
-      } else if (time > this.time.easeInEnd && time < this.time.easeOutStart) {
-        opacity = 1;
-      }
-      if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
-        opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
-      } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
-        opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
-      }
-    } else {
-      if (time < this.time.easeOutStart || time > this.time.easeInEnd) {
-        opacity = 1;
-      } else if (time > this.time.easeOutEnd && time < this.time.easeInStart) {
-        opacity = 0;
-      }
-      if (time >= this.time.easeInStart && time <= this.time.easeInEnd) {
-        opacity = (time - this.time.easeInStart) / (this.time.easeInEnd - this.time.easeInStart);
-      } else if (time >= this.time.easeOutStart && time <= this.time.easeOutEnd) {
-        opacity = 1 - (time - this.time.easeOutStart) / (this.time.easeOutEnd - this.time.easeOutStart);
-      }
-    }
+    let opacity = timeEaser(time % 24, this.time, 24);
     this.layers.back.renderLayer.opacity = opacity;
     this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
   }
@@ -1238,12 +1248,12 @@ var ShipNight = class extends ShipTheme {
     super({
       back: "night_back",
       front: "night_front"
-    }, {
-      easeInStart: 16,
-      easeInEnd: 20,
-      easeOutStart: 5,
-      easeOutEnd: 9
-    }, managers, scale, layer);
+    }, [
+      [5, 1],
+      [10, 0],
+      [15, 0],
+      [20, 1]
+    ], managers, scale, layer);
   }
 };
 var ShipDay = class extends ShipTheme {
@@ -1251,12 +1261,12 @@ var ShipDay = class extends ShipTheme {
     super({
       back: "back",
       front: "front"
-    }, {
-      easeInStart: 5,
-      easeInEnd: 9,
-      easeOutStart: 16,
-      easeOutEnd: 20
-    }, managers, scale, layer);
+    }, [
+      [5, 0],
+      [10, 1],
+      [15, 1],
+      [20, 0]
+    ], managers, scale, layer);
   }
 };
 var Ship = class {
@@ -1306,13 +1316,31 @@ var Horizon = class extends Div {
     });
     this.managers = managers;
     this.managers.renderer.add(this, "bg", 40);
-    this.managers.renderer.add(new Div({
+    this.overlay = this.managers.renderer.add(new Div({
       position: new Vector2(0, 1080 - 150),
       size: ["1920px", "150px"],
       background: {
         color: "rgb(28 42 58 / 85%)"
       }
     }), "overlay", 40);
+  }
+  setTime(time) {
+    this.overlay.element.background({
+      color: Utils.easeColor(timeEaser(time % 24, [
+        [7, 1],
+        [12, 0],
+        [15, 0],
+        [20, 1]
+      ], 24), [28, 42, 58, 1], [90, 130, 180, 1])
+    });
+    this.background({
+      color: Utils.easeColor(timeEaser(time % 24, [
+        [7, 1],
+        [12, 0],
+        [15, 0],
+        [20, 1]
+      ], 24), [28, 42, 58, 1], [90, 130, 180, 1])
+    });
   }
 };
 
@@ -1349,6 +1377,19 @@ var Moon = class extends Div {
     });
     this.reflectionWrap.append(this.reflection);
     this.managers.renderer.add(this.reflectionWrap, "overlay", 50);
+    this.overlay = this.managers.renderer.add(new Div({
+      size: new Vector2(3e3, 3e3),
+      position: new Vector2(-1080 / 2, -1920 / 2),
+      background: {
+        type: "linear",
+        colors: [
+          { color: "rgba(255, 255, 255, 0.3)", position: "20%" },
+          { color: "rgba(255, 255, 255, 0)", position: "80%" }
+        ],
+        direction: "to right"
+      },
+      anchor: new Vector2(1500, 1500)
+    }), "overlay", 60);
   }
   setTime(time) {
     const p = new Vector2(0, -1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
@@ -1357,6 +1398,16 @@ var Moon = class extends Div {
     let o = 1 - (p2.y - 300) / 600;
     this.reflection.transform.setPosition(p2);
     this.reflection.style("opacity: ".concat(o, ";"));
+    this.overlay.element.transform.setRotation(time / 24 * 360 + 90);
+    const opacity = timeEaser(time % 24, [
+      [0, 0.5],
+      [5, 1],
+      [6, 0],
+      [18, 0],
+      [19, 1],
+      [24, 0.5]
+    ], 24);
+    this.overlay.opacity = opacity;
   }
 };
 
@@ -1371,7 +1422,7 @@ var Sun = class extends Div {
     this.sun = new Div({
       size: ["200px", "200px"],
       background: {
-        color: "rgba(244, 244, 73, 0.5)"
+        color: "rgba(244, 244, 73, 0.3)"
       },
       anchor: new Vector2(100, 100),
       style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 100px rgba(244, 244, 73, 1)) blur(10px); margin-top: -100px; margin-left: -100px; "
@@ -1393,6 +1444,19 @@ var Sun = class extends Div {
     });
     this.reflectionWrap.append(this.reflection);
     this.managers.renderer.add(this.reflectionWrap, "overlay", 50);
+    this.overlay = this.managers.renderer.add(new Div({
+      size: new Vector2(3e3, 3e3),
+      position: new Vector2(-1080 / 2, -1920 / 2),
+      background: {
+        type: "linear",
+        colors: [
+          { color: "rgba(246, 234, 68, 0.25)", position: "0%" },
+          { color: "rgba(245, 239, 64, 0)", position: "100%" }
+        ],
+        direction: "to right"
+      },
+      anchor: new Vector2(1500, 1500)
+    }), "overlay", 59);
   }
   setTime(time) {
     const p = new Vector2(0, 1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
@@ -1401,6 +1465,15 @@ var Sun = class extends Div {
     let o = 1 - (p2.y - 100) / 400;
     this.reflection.transform.setPosition(p2);
     this.reflection.style("opacity: ".concat(o, ";"));
+    this.overlay.element.transform.setRotation(time / 24 * 360 - 90);
+    const opacity = timeEaser(time % 24, [
+      [6, 0],
+      [7, 1],
+      [12.5, 0.3],
+      [17, 1],
+      [18, 0]
+    ], 24);
+    this.overlay.opacity = opacity;
   }
 };
 
@@ -1421,13 +1494,18 @@ var Sky = class extends Div {
     this.setTime(15);
   }
   setTime(time) {
-    const wave = Math.pow(Math.sin((time + 17) % 24 * Math.PI / 12) * 0.5 + 0.5, 2);
-    const color = Utils.easeColor(wave, [173, 202, 251, 1], [10, 20, 30, 1]);
+    const color = Utils.easeColor(timeEaser(time % 24, [
+      [5, 0],
+      [9, 1],
+      [15, 1],
+      [19, 0]
+    ], 24), [173, 202, 251, 1], [10, 20, 30, 1]);
     this.background({
       color
     });
     this.sun.setTime(time);
     this.moon.setTime(time);
+    this.horizon.setTime(time);
   }
 };
 
@@ -1466,6 +1544,7 @@ var Renderer = class extends Div {
       layer = new RenderLayer(element, depth != null ? depth : 0, options);
     }
     this.wrappers[wrapperName].div.append(layer);
+    return layer;
   }
   getWrapper(wrapperName) {
     return this.wrappers[wrapperName].div;
@@ -1537,7 +1616,7 @@ var LogicManager = class _LogicManager extends Main {
       if (e.key === "o") {
         this.shipBGLayer.visible = !this.shipBGLayer.visible;
       }
-      if (/[1-9]/.test(e.key)) {
+      if (["1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(e.key)) {
         this.timeOffset = $.time - _LogicManager.timeToMs((parseInt(e.key) - 1) / 9 * 24, this.values.secondsPerDay);
       }
     });

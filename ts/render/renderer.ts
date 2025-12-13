@@ -45,6 +45,7 @@ export class Renderer extends Div {
             layer = new RenderLayer(element, depth ?? 0, options);
         }
         this.wrappers[wrapperName].div.append(layer);
+        return layer;
     }
     getWrapper(wrapperName: RendererWrappers) {
         return this.wrappers[wrapperName].div;

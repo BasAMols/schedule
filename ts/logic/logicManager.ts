@@ -89,7 +89,7 @@ export class LogicManager<P extends Person> extends Main {
             if (e.key === 'o') {
                 this.shipBGLayer.visible = !this.shipBGLayer.visible;
             }
-            if (/[1-9]/.test(e.key)) {
+            if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
                 this.timeOffset = $.time - LogicManager.timeToMs((parseInt(e.key)-1)/9*24, this.values.secondsPerDay);
             }
         });
@@ -109,6 +109,7 @@ export class LogicManager<P extends Person> extends Main {
     timeOffset: number = 0;
 
     setTime(time: number): void {
+
         this.peopleManager.setTime(time % 24);
         this.ship.setTime(time % 24);
         this.shipBG.setTime(time % 24);
