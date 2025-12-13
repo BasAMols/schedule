@@ -21,7 +21,11 @@ export class LogicManager<P extends Person> extends Main {
     mapManager: MapManager;
     peopleManager: PeopleManager<P>;
     ticker: void;
-    static SECONDS_PER_DAY = 50;
+    private values: {
+        secondsPerDay: number;
+    } = {
+        secondsPerDay: 50,
+    };
     managers: Managers<P> = {
         mapManager: null,
         peopleManager: null,
@@ -29,6 +33,7 @@ export class LogicManager<P extends Person> extends Main {
         renderer: new Renderer({
             bg: 10,
             world: 20,
+            shipBG: 25,
             ship: 30,
             overlay: 30,
             ui: 40,
@@ -37,6 +42,8 @@ export class LogicManager<P extends Person> extends Main {
     ship: Ship;
     sky: Sky;
     shipLayer: Div;
+    shipBG: Ship;
+    shipBGLayer: Div;
     public constructor(
         public container: Container,
         protected classes: LogicManagerClasses<P>,
@@ -45,6 +52,7 @@ export class LogicManager<P extends Person> extends Main {
         super(container);
         container.append(this.managers.renderer);
         this.sky = new Sky(this.managers);
+        this.shipBG = new Ship(this.managers, 0.20, 'shipBG');
         this.ship = new Ship(this.managers);
         this.mapManager = new MapManager(this.managers as Managers<P>, mapLocations, mapConnections);
 
@@ -59,32 +67,53 @@ export class LogicManager<P extends Person> extends Main {
         this.mapManager.build();
         this.peopleManager.build();
         this.managers.renderer.add(this.peopleManager.dom, 'ui', 1);
+        this.peopleManager.dom.visible = false;
 
         this.ticker = new Ticker().addCallback(this.tick.bind(this));
         this.shipLayer = this.managers.renderer.getWrapper('ship');
         this.shipLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+        this.shipBGLayer = this.managers.renderer.getWrapper('shipBG');
+        this.shipBGLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+        this.shipBGLayer.visible = false;
+        this.shipBGLayer.style('height: 480px; overflow: hidden;');
 
         this.container.dom.addEventListener('click', () => {
-            this.ship.open = !this.ship.open;
         });
         document.addEventListener('keydown', (e) => {
             if (e.key === 's') {
                 this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
             }
+            if (e.key === ' ') {
+                this.ship.open = !this.ship.open;
+            }
+            if (e.key === 'o') {
+                this.shipBGLayer.visible = !this.shipBGLayer.visible;
+            }
+            if (/[1-9]/.test(e.key)) {
+                this.timeOffset = $.time - LogicManager.timeToMs((parseInt(e.key)-1)/9*24, this.values.secondsPerDay);
+            }
         });
         this.container.dom.addEventListener('resize', () => {
             this.managers.renderer.resize();
         });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
+        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
     }
 
     setup() {
 
     }
 
+    timeOffset: number = 0;
+
     setTime(time: number): void {
         this.peopleManager.setTime(time % 24);
         this.ship.setTime(time % 24);
+        this.shipBG.setTime(time % 24);
         this.sky.setTime(time % 24);
+
         const waveRotation = 1;
         const waveTime = 1000;
         const waveHeight = 10;
@@ -92,10 +121,25 @@ export class LogicManager<P extends Person> extends Main {
         const wave2 = Math.sin(($.time - 800) / 1000);
         this.shipLayer.transform.setRotation(wave * waveRotation);
         this.shipLayer.transform.setPosition(0, wave2 * waveHeight);
+
+        const waveRotationBG = 1;
+        const waveTimeBG = 500;
+        const waveHeightBG = 5;
+        const waveBG = Math.sin(($.time + 2000) / waveTime);
+        const wave2BG = Math.sin((($.time + 2000) - 800) / 1000);
+        this.shipBGLayer.transform.setRotation(waveBG * waveRotationBG);
+        this.shipBGLayer.transform.setPosition(700, wave2BG * waveHeightBG +350);
+    }
+
+    static msToTime(ms: number, secondsPerDay: number): number {
+        return (ms * 24 / 1000 / secondsPerDay) % 24; // this works
+    } 
+    static timeToMs(time: number, secondsPerDay: number): number {
+        return ((secondsPerDay*1000) /24 * (time%24)); // this doesnt work
     }
 
     tick(): void {
-        this.setTime(($.time * 24 / 1000 / LogicManager.SECONDS_PER_DAY) + 16);
+        this.setTime(LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay));
     }
 }
 

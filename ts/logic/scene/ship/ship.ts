@@ -1,3 +1,4 @@
+import { RendererWrappers } from "../../../render/renderer";
 import { RenderLayer } from "../../../render/renderLayer";
 import { Div } from "../../../util/html/div";
 import { Ease } from "../../../util/math/ease";
@@ -17,14 +18,14 @@ export abstract class ShipTheme {
         easeInEnd: TimePeriod;
         easeOutStart: TimePeriod;
         easeOutEnd: TimePeriod;
-    }, protected managers: Managers) {
+    }, protected managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
             const div = new Div({
                 background: {
                     image: `dist/images/ship/${image}.png`,
                     type: 'image',
                 },
-                scale: new Vector2(0.35, 0.35),
+                scale: new Vector2(scale, scale),
                 style: 'opacity: 1; transition: opacity 0.1s ease-in-out;',
                 size: new Vector2(3840, 3200),
                 position: new Vector2(300, -120),
@@ -38,8 +39,8 @@ export abstract class ShipTheme {
             renderLayer: RenderLayer;
         }>;
 
-        this.managers.renderer.add(this.layers.back.renderLayer, 'ship', 40);
-        this.managers.renderer.add(this.layers.front.renderLayer, 'ship', 60);
+        this.managers.renderer.add(this.layers.back.renderLayer, layer, 40);
+        this.managers.renderer.add(this.layers.front.renderLayer, layer, 60);
     }
 
     setTime(time: number) {
@@ -83,7 +84,7 @@ export abstract class ShipTheme {
 }
 
 export class ShipNight extends ShipTheme {
-    constructor(managers: Managers) {
+    constructor(managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         super({
             back: 'night_back',
             front: 'night_front',
@@ -92,11 +93,11 @@ export class ShipNight extends ShipTheme {
             easeInEnd: 20,
             easeOutStart: 5,
             easeOutEnd: 9,
-        }, managers);
+        }, managers, scale, layer);
     }
 }
 export class ShipDay extends ShipTheme {
-    constructor(managers: Managers) {
+    constructor(managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         super({
             back: 'back',
             front: 'front',
@@ -105,16 +106,16 @@ export class ShipDay extends ShipTheme {
             easeInEnd: 9,
             easeOutStart: 16,
             easeOutEnd: 20,
-        }, managers);
+        }, managers, scale, layer);
     }
 }
 
 export class Ship {
     day: ShipDay;
     night: ShipNight;
-    constructor(protected managers: Managers) {
-        this.night = new ShipNight(this.managers);
-        this.day = new ShipDay(this.managers);
+    constructor(protected managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
+        this.night = new ShipNight(this.managers, scale, layer);
+        this.day = new ShipDay(this.managers, scale, layer);
     }
 
     setTime(time: number) {

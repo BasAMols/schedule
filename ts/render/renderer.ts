@@ -4,7 +4,7 @@ import { El } from "../util/html/el";
 import { Vector2 } from "../util/math/vector2";
 import { RenderLayer } from "./renderLayer";
 
-export type RendererWrappers = 'bg' | 'world' | 'ship' | 'overlay' | 'ui';
+export type RendererWrappers = 'bg' | 'world' | 'shipBG' | 'ship' | 'overlay' | 'ui';
 export class Renderer extends Div {
     private wrappers: Record<RendererWrappers, {
         div: Div;

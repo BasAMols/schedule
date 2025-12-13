@@ -1175,28 +1175,28 @@ var RenderLayer = class extends Div {
 
 // ts/logic/scene/ship/ship.ts
 var ShipTheme = class {
-  constructor(layers, time, managers) {
+  constructor(layers, time, managers, scale = 0.35, layer = "ship") {
     this.time = time;
     this.managers = managers;
     this._open = 0;
-    this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
+    this.layers = Object.fromEntries(Object.entries(layers).map(([layer2, image]) => {
       const div = new Div({
         background: {
           image: "dist/images/ship/".concat(image, ".png"),
           type: "image"
         },
-        scale: new Vector2(0.35, 0.35),
+        scale: new Vector2(scale, scale),
         style: "opacity: 1; transition: opacity 0.1s ease-in-out;",
         size: new Vector2(3840, 3200),
         position: new Vector2(300, -120)
       });
-      return [layer, {
+      return [layer2, {
         div,
         renderLayer: new RenderLayer(div, 40)
       }];
     }));
-    this.managers.renderer.add(this.layers.back.renderLayer, "ship", 40);
-    this.managers.renderer.add(this.layers.front.renderLayer, "ship", 60);
+    this.managers.renderer.add(this.layers.back.renderLayer, layer, 40);
+    this.managers.renderer.add(this.layers.front.renderLayer, layer, 60);
   }
   setTime(time) {
     let opacity = 0;
@@ -1234,7 +1234,7 @@ var ShipTheme = class {
   }
 };
 var ShipNight = class extends ShipTheme {
-  constructor(managers) {
+  constructor(managers, scale = 0.35, layer = "ship") {
     super({
       back: "night_back",
       front: "night_front"
@@ -1243,11 +1243,11 @@ var ShipNight = class extends ShipTheme {
       easeInEnd: 20,
       easeOutStart: 5,
       easeOutEnd: 9
-    }, managers);
+    }, managers, scale, layer);
   }
 };
 var ShipDay = class extends ShipTheme {
-  constructor(managers) {
+  constructor(managers, scale = 0.35, layer = "ship") {
     super({
       back: "back",
       front: "front"
@@ -1256,15 +1256,15 @@ var ShipDay = class extends ShipTheme {
       easeInEnd: 9,
       easeOutStart: 16,
       easeOutEnd: 20
-    }, managers);
+    }, managers, scale, layer);
   }
 };
 var Ship = class {
-  constructor(managers) {
+  constructor(managers, scale = 0.35, layer = "ship") {
     this.managers = managers;
     this._open = false;
-    this.night = new ShipNight(this.managers);
-    this.day = new ShipDay(this.managers);
+    this.night = new ShipNight(this.managers, scale, layer);
+    this.day = new ShipDay(this.managers, scale, layer);
   }
   setTime(time) {
     this.day.setTime(time % 24);
@@ -1345,7 +1345,7 @@ var Moon = class extends Div {
         color: "rgba(255, 255, 255, 0.36)"
       },
       anchor: new Vector2(90, 90),
-      style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 50px rgb(255, 255, 255)) blur(100px) ; margin-top: -90px; margin-left: -90px; "
+      style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 300px rgb(255, 255, 255)) blur(200px) ; margin-top: -90px; margin-left: -90px; "
     });
     this.reflectionWrap.append(this.reflection);
     this.managers.renderer.add(this.reflectionWrap, "overlay", 50);
@@ -1354,7 +1354,7 @@ var Moon = class extends Div {
     const p = new Vector2(0, -1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
     this.moon.transform.setPosition(p);
     const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
-    let o = 1 - (p2.y - 300) / 400;
+    let o = 1 - (p2.y - 300) / 600;
     this.reflection.transform.setPosition(p2);
     this.reflection.style("opacity: ".concat(o, ";"));
   }
@@ -1478,12 +1478,15 @@ var Renderer = class extends Div {
 };
 
 // ts/logic/logicManager.ts
-var _LogicManager = class _LogicManager extends Main {
+var LogicManager = class _LogicManager extends Main {
   constructor(container, classes, peopleData = () => []) {
     super(container);
     this.container = container;
     this.classes = classes;
     this.peopleData = peopleData;
+    this.values = {
+      secondsPerDay: 50
+    };
     this.managers = {
       mapManager: null,
       peopleManager: null,
@@ -1491,13 +1494,16 @@ var _LogicManager = class _LogicManager extends Main {
       renderer: new Renderer({
         bg: 10,
         world: 20,
+        shipBG: 25,
         ship: 30,
         overlay: 30,
         ui: 40
       })
     };
+    this.timeOffset = 0;
     container.append(this.managers.renderer);
     this.sky = new Sky(this.managers);
+    this.shipBG = new Ship(this.managers, 0.2, "shipBG");
     this.ship = new Ship(this.managers);
     this.mapManager = new MapManager(this.managers, mapLocations, mapConnections);
     this.peopleManager = new PeopleManager(
@@ -1511,26 +1517,45 @@ var _LogicManager = class _LogicManager extends Main {
     this.mapManager.build();
     this.peopleManager.build();
     this.managers.renderer.add(this.peopleManager.dom, "ui", 1);
+    this.peopleManager.dom.visible = false;
     this.ticker = new Ticker().addCallback(this.tick.bind(this));
     this.shipLayer = this.managers.renderer.getWrapper("ship");
     this.shipLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+    this.shipBGLayer = this.managers.renderer.getWrapper("shipBG");
+    this.shipBGLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
+    this.shipBGLayer.visible = false;
+    this.shipBGLayer.style("height: 480px; overflow: hidden;");
     this.container.dom.addEventListener("click", () => {
-      this.ship.open = !this.ship.open;
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "s") {
         this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
       }
+      if (e.key === " ") {
+        this.ship.open = !this.ship.open;
+      }
+      if (e.key === "o") {
+        this.shipBGLayer.visible = !this.shipBGLayer.visible;
+      }
+      if (/[1-9]/.test(e.key)) {
+        this.timeOffset = $.time - _LogicManager.timeToMs((parseInt(e.key) - 1) / 9 * 24, this.values.secondsPerDay);
+      }
     });
     this.container.dom.addEventListener("resize", () => {
       this.managers.renderer.resize();
     });
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("spd"))
+      this.values.secondsPerDay = parseInt(urlParams.get("spd"));
+    if (urlParams.get("ship"))
+      this.shipBGLayer.visible = true;
   }
   setup() {
   }
   setTime(time) {
     this.peopleManager.setTime(time % 24);
     this.ship.setTime(time % 24);
+    this.shipBG.setTime(time % 24);
     this.sky.setTime(time % 24);
     const waveRotation = 1;
     const waveTime = 1e3;
@@ -1539,13 +1564,24 @@ var _LogicManager = class _LogicManager extends Main {
     const wave2 = Math.sin(($.time - 800) / 1e3);
     this.shipLayer.transform.setRotation(wave * waveRotation);
     this.shipLayer.transform.setPosition(0, wave2 * waveHeight);
+    const waveRotationBG = 1;
+    const waveTimeBG = 500;
+    const waveHeightBG = 5;
+    const waveBG = Math.sin(($.time + 2e3) / waveTime);
+    const wave2BG = Math.sin(($.time + 2e3 - 800) / 1e3);
+    this.shipBGLayer.transform.setRotation(waveBG * waveRotationBG);
+    this.shipBGLayer.transform.setPosition(700, wave2BG * waveHeightBG + 350);
+  }
+  static msToTime(ms, secondsPerDay) {
+    return ms * 24 / 1e3 / secondsPerDay % 24;
+  }
+  static timeToMs(time, secondsPerDay) {
+    return secondsPerDay * 1e3 / 24 * (time % 24);
   }
   tick() {
-    this.setTime($.time * 24 / 1e3 / _LogicManager.SECONDS_PER_DAY + 16);
+    this.setTime(_LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay));
   }
 };
-_LogicManager.SECONDS_PER_DAY = 50;
-var LogicManager = _LogicManager;
 
 // ts/util/game/transitions/transitionBase.ts
 var TransitionIn = class extends Div {
