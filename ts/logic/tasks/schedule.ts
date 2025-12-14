@@ -78,6 +78,8 @@ export class Schedule {
 		for (let i: TimePeriod = 0; i < 24; i++) {
 			const from = this.table[i as TimePeriod];
 			const to = this.table[(((i + 1) % 24) as TimePeriod)];
+			console.log(from.data.location);
+			console.log(to.data.location);
 			const route = this.managers.routeManager.findRoute(
 				from.data.location,
 				to.data.location);

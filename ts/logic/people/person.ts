@@ -18,7 +18,7 @@ export class Person {
     scheduleDom: Div;
     activeTask: Task;
     characterDom: Div;
-    speed: number = 500; // pixels per hour
+    speed: number = 1000; // pixels per hour
     protected _phase: phase = 'idle';
     public get phase(): phase {
         return this._phase;
@@ -35,7 +35,7 @@ export class Person {
         this.schedule = new scheduleClass(this.managers, this, {
             tasks: data.tasks,
         });
-        this.speed = data.speed || 500;
+        this.speed = data.speed || 1000;
     }
 
     build(): void {

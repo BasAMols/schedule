@@ -214,4 +214,8 @@ export class Vector2 {
     public stringSize(): string {
         return `${this.x}px ${this.y}px`;
     }
+
+    equals(other: Vector2): boolean {
+        return this.x === other.x && this.y === other.y;
+    }
 }

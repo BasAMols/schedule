@@ -24,7 +24,7 @@ export class Sprite extends Div {
                 size: `${options.size.x*options.columns}px ${options.size.y*options.rows}px`,
                 repeat: 'no-repeat',
             },
-            style: `transform-origin: ${options.size.x*options.columns/2}px ${options.size.y*options.rows/2}px;`,
+            style: `transform-origin: ${options.size.x*options.columns/2}px ${options.size.y*options.rows/2}px; image-rendering: pixelated;`,
             ...options,
         });
         this.max = options.columns * options.rows;

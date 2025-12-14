@@ -7,7 +7,7 @@ import { Vector2 } from "../../../util/math/vector2";
 import { Managers } from "../../managers";
 import { TimePeriod } from "../../tasks/time";
 
-export type ShipThemeLayers = 'back' | 'front';
+export type ShipThemeLayers = 'back' | 'front' | 'rail';
 
 export abstract class ShipTheme {
     private layers: Record<ShipThemeLayers, {
@@ -37,13 +37,14 @@ export abstract class ShipTheme {
 
         this.managers.renderer.add(this.layers.back.renderLayer, layer, 40);
         this.managers.renderer.add(this.layers.front.renderLayer, layer, 60);
+        this.managers.renderer.add(this.layers.rail.renderLayer, layer, 65);
     }
 
     setTime(time: number) {
         let opacity = timeEaser(time % 24, this.time, 24);
         this.layers.back.renderLayer.opacity = opacity;
         this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
-
+        this.layers.rail.renderLayer.opacity = (1 - this.open) * opacity;
     }
     private _open: number = 0;
     public get open(): number {
@@ -59,11 +60,12 @@ export class ShipNight extends ShipTheme {
         super({
             back: 'night_back',
             front: 'night_front',
+            rail: 'night_rail',
         }, [
-            [5, 1],
-            [10, 0],
-            [15, 0],
-            [20, 1],
+            [7, 1],
+            [8, 0],
+            [17, 0],
+            [18, 1],
         ], managers, scale, layer);
     }
 }
@@ -72,11 +74,12 @@ export class ShipDay extends ShipTheme {
         super({
             back: 'back',
             front: 'front',
+            rail: 'rail',
         }, [
-            [5, 0],
-            [10, 1],
-            [15, 1],
-            [20, 0],
+            [7, 0],
+            [8, 1],
+            [17, 1],
+            [18, 0],
         ], managers, scale, layer);
     }
 }

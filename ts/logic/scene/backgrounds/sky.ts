@@ -15,7 +15,7 @@ export class Sky extends Div {
     overlay: Div;
     constructor(protected managers: Managers) {
         super({
-            size: ['1920px', '1080px'],
+            size: ['3000px', '1080px'],
             background: {
                 color: 'blue',
             },
@@ -40,6 +40,7 @@ export class Sky extends Div {
         this.background({
             color: color,
         });
+        window.document.body.style.backgroundColor = color;
         this.sun.setTime(time);
         this.moon.setTime(time);
         this.horizon.setTime(time);

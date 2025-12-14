@@ -194,6 +194,9 @@ var Vector2 = class _Vector2 {
   stringSize() {
     return "".concat(this.x, "px ").concat(this.y, "px");
   }
+  equals(other) {
+    return this.x === other.x && this.y === other.y;
+  }
 };
 
 // ts/util/html/css/background.ts
@@ -639,6 +642,8 @@ var _Schedule = class _Schedule {
     for (let i = 0; i < 24; i++) {
       const from = this.table[i];
       const to = this.table[(i + 1) % 24];
+      console.log(from.data.location);
+      console.log(to.data.location);
       const route = this.managers.routeManager.findRoute(
         from.data.location,
         to.data.location
@@ -791,6 +796,8 @@ var RouteManager = class _RouteManager {
     if (found) {
       return found;
     }
+    console.log(locationA);
+    console.log(locationB);
     return this.createRoute(locationA, locationB);
   }
   static recursiveRoute(locationA, locationB, route, distance, exclude, connections) {
@@ -820,6 +827,8 @@ var RouteManager = class _RouteManager {
     return false;
   }
   createRoute(locationA, locationB) {
+    console.log(locationA);
+    console.log(locationB);
     const foundRoute = _RouteManager.recursiveRoute(locationA, locationB, [], 0, [], []);
     if (!foundRoute) {
       throw new Error("No route found");
@@ -909,6 +918,11 @@ var MapLocation = class {
       r: 5,
       fill: "black"
     }));
+    this.dom.append(new Svg("text", {
+      text: this.data.name,
+      x: this.data.position.x + 15,
+      y: this.data.position.y + 25
+    }));
   }
 };
 
@@ -932,14 +946,15 @@ var MapManager = class {
   build() {
     this.dom = new Div();
     this.mapSvg = new Svg("svg", {
-      size: new Vector2(1e3, 1e3)
+      size: new Vector2(3e3, 2e3)
     });
-    this.dom.append(this.mapSvg);
     for (const connection of this.mapConnections) {
       connection.build();
+      this.mapSvg.append(connection.line);
     }
     for (const location of Object.values(this.locations)) {
       location.build();
+      this.mapSvg.append(location.dom);
     }
   }
 };
@@ -991,27 +1006,61 @@ var PeopleManager = class {
 
 // ts/logic/map/list.ts
 var mapLocations = {
-  cph_front: new Vector2(250 + 300, 655 + 130),
-  deck0: new Vector2(310 + 300, 662 + 130),
-  wheel: new Vector2(315 + 300, 659 + 130),
-  deck1: new Vector2(420 + 300, 670 + 130),
-  deck1Stair: new Vector2(430 + 300, 664 + 130),
-  deck2: new Vector2(520 + 300, 677 + 130),
-  deck3: new Vector2(700 + 300, 679 + 130),
-  deck4: new Vector2(870 + 300, 670 + 130),
-  gun3: new Vector2(515 + 300, 720 + 130),
-  gun3Stair: new Vector2(500 + 300, 715 + 130)
+  deck0: new Vector2(550, 785),
+  deck1: new Vector2(610, 792),
+  deck1Wheel: new Vector2(615, 789),
+  deck2: new Vector2(720, 800),
+  deck2Stair: new Vector2(730, 794),
+  deck3: new Vector2(820, 807),
+  deck4: new Vector2(1e3, 809),
+  deck5: new Vector2(1170, 800),
+  gun1: new Vector2(435, 803),
+  gun2: new Vector2(550, 828),
+  gun3: new Vector2(699, 845),
+  gun4: new Vector2(815, 853),
+  gun4Stair: new Vector2(800, 845),
+  gun5: new Vector2(890, 854),
+  gun6: new Vector2(1010, 850),
+  gun6Stair: new Vector2(1030, 843),
+  gun7: new Vector2(1129, 840),
+  gun8: new Vector2(1249, 822),
+  orlop1: new Vector2(455, 853),
+  orlop2: new Vector2(550, 872),
+  orlop3: new Vector2(699, 885),
+  orlop4: new Vector2(815, 890),
+  orlop5: new Vector2(890, 892),
+  orlop6: new Vector2(1e3, 892),
+  orlop7: new Vector2(1110, 886),
+  orlop7Stair: new Vector2(1095, 883),
+  orlop8: new Vector2(1249, 866)
 };
 var mapConnections = [
-  { from: "cph_front", to: "deck0" },
   { from: "deck0", to: "deck1" },
-  { from: "deck0", to: "wheel" },
+  { from: "deck1", to: "deck1Wheel" },
   { from: "deck1", to: "deck2" },
-  { from: "deck1", to: "deck1Stair" },
-  { from: "deck1Stair", to: "gun3Stair" },
   { from: "deck2", to: "deck3" },
   { from: "deck3", to: "deck4" },
-  { from: "gun3Stair", to: "gun3" }
+  { from: "deck4", to: "deck5" },
+  { from: "gun1", to: "gun2" },
+  { from: "gun2", to: "gun3" },
+  { from: "gun3", to: "gun4" },
+  { from: "gun4", to: "gun5" },
+  { from: "gun5", to: "gun6" },
+  { from: "gun6", to: "gun7" },
+  { from: "gun7", to: "gun8" },
+  { from: "orlop1", to: "orlop2" },
+  { from: "orlop2", to: "orlop3" },
+  { from: "orlop3", to: "orlop4" },
+  { from: "orlop4", to: "orlop5" },
+  { from: "orlop5", to: "orlop6" },
+  { from: "orlop6", to: "orlop7" },
+  { from: "orlop7", to: "orlop8" },
+  { from: "deck2", to: "deck2Stair" },
+  { from: "deck2Stair", to: "gun4Stair" },
+  { from: "gun4Stair", to: "gun4" },
+  { from: "gun6", to: "gun6Stair" },
+  { from: "gun6Stair", to: "orlop7Stair" },
+  { from: "orlop7Stair", to: "orlop7" }
 ];
 
 // ts/util/game/main.ts
@@ -1230,11 +1279,13 @@ var ShipTheme = class {
     }));
     this.managers.renderer.add(this.layers.back.renderLayer, layer, 40);
     this.managers.renderer.add(this.layers.front.renderLayer, layer, 60);
+    this.managers.renderer.add(this.layers.rail.renderLayer, layer, 65);
   }
   setTime(time) {
     let opacity = timeEaser(time % 24, this.time, 24);
     this.layers.back.renderLayer.opacity = opacity;
     this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
+    this.layers.rail.renderLayer.opacity = (1 - this.open) * opacity;
   }
   get open() {
     return this._open;
@@ -1247,12 +1298,13 @@ var ShipNight = class extends ShipTheme {
   constructor(managers, scale = 0.35, layer = "ship") {
     super({
       back: "night_back",
-      front: "night_front"
+      front: "night_front",
+      rail: "night_rail"
     }, [
-      [5, 1],
-      [10, 0],
-      [15, 0],
-      [20, 1]
+      [7, 1],
+      [8, 0],
+      [17, 0],
+      [18, 1]
     ], managers, scale, layer);
   }
 };
@@ -1260,12 +1312,13 @@ var ShipDay = class extends ShipTheme {
   constructor(managers, scale = 0.35, layer = "ship") {
     super({
       back: "back",
-      front: "front"
+      front: "front",
+      rail: "rail"
     }, [
-      [5, 0],
-      [10, 1],
-      [15, 1],
-      [20, 0]
+      [7, 0],
+      [8, 1],
+      [17, 1],
+      [18, 0]
     ], managers, scale, layer);
   }
 };
@@ -1309,7 +1362,7 @@ var Horizon = class extends Div {
   constructor(managers) {
     super({
       position: new Vector2(0, 1080 - 150 - 150),
-      size: ["1920px", "150px"],
+      size: ["3000px", "150px"],
       background: {
         color: "rgb(28 42 58 / 85%)"
       }
@@ -1318,7 +1371,7 @@ var Horizon = class extends Div {
     this.managers.renderer.add(this, "bg", 40);
     this.overlay = this.managers.renderer.add(new Div({
       position: new Vector2(0, 1080 - 150),
-      size: ["1920px", "150px"],
+      size: ["3000px", "150px"],
       background: {
         color: "rgb(28 42 58 / 85%)"
       }
@@ -1348,7 +1401,7 @@ var Horizon = class extends Div {
 var Moon = class extends Div {
   constructor(managers) {
     super({
-      size: ["1920px", "800px"],
+      size: ["3000px", "800px"],
       style: "overflow: hidden;"
     });
     this.managers = managers;
@@ -1363,7 +1416,7 @@ var Moon = class extends Div {
     this.managers.renderer.add(this, "bg", 35);
     this.append(this.moon);
     this.reflectionWrap = new Div({
-      size: ["1920px", "300px"],
+      size: ["3000px", "300px"],
       position: new Vector2(0, 1080 - 300),
       style: "overflow: hidden;"
     });
@@ -1383,7 +1436,7 @@ var Moon = class extends Div {
       background: {
         type: "linear",
         colors: [
-          { color: "rgba(255, 255, 255, 0.3)", position: "20%" },
+          { color: "rgba(255, 255, 255, 0.4)", position: "20%" },
           { color: "rgba(255, 255, 255, 0)", position: "80%" }
         ],
         direction: "to right"
@@ -1400,12 +1453,12 @@ var Moon = class extends Div {
     this.reflection.style("opacity: ".concat(o, ";"));
     this.overlay.element.transform.setRotation(time / 24 * 360 + 90);
     const opacity = timeEaser(time % 24, [
-      [0, 0.5],
+      [0, 0.7],
       [5, 1],
       [6, 0],
       [18, 0],
       [19, 1],
-      [24, 0.5]
+      [24, 0.7]
     ], 24);
     this.overlay.opacity = opacity;
   }
@@ -1415,7 +1468,7 @@ var Moon = class extends Div {
 var Sun = class extends Div {
   constructor(managers) {
     super({
-      size: ["1920px", "800px"],
+      size: ["3000px", "800px"],
       style: "overflow: hidden;"
     });
     this.managers = managers;
@@ -1430,7 +1483,7 @@ var Sun = class extends Div {
     this.managers.renderer.add(this, "bg", 30);
     this.append(this.sun);
     this.reflectionWrap = new Div({
-      size: ["1920px", "300px"],
+      size: ["3000px", "300px"],
       position: new Vector2(0, 1080 - 300),
       style: "overflow: hidden;"
     });
@@ -1450,7 +1503,7 @@ var Sun = class extends Div {
       background: {
         type: "linear",
         colors: [
-          { color: "rgba(246, 234, 68, 0.25)", position: "0%" },
+          { color: "rgba(246, 234, 68, 0.2)", position: "0%" },
           { color: "rgba(245, 239, 64, 0)", position: "100%" }
         ],
         direction: "to right"
@@ -1481,7 +1534,7 @@ var Sun = class extends Div {
 var Sky = class extends Div {
   constructor(managers) {
     super({
-      size: ["1920px", "1080px"],
+      size: ["3000px", "1080px"],
       background: {
         color: "blue"
       }
@@ -1503,9 +1556,58 @@ var Sky = class extends Div {
     this.background({
       color
     });
+    window.document.body.style.backgroundColor = color;
     this.sun.setTime(time);
     this.moon.setTime(time);
     this.horizon.setTime(time);
+  }
+};
+
+// ts/util/math/math.ts
+var MathUtil = class {
+  static max(a, b) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a > b ? a : b;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x > b.x ? a.x : b.x,
+        a.y > b.y ? a.y : b.y
+      );
+    }
+    throw new Error("Invalid max arguments: both arguments must be either numbers or Vector2 objects");
+  }
+  static min(a, b) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a < b ? a : b;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x < b.x ? a.x : b.x,
+        a.y < b.y ? a.y : b.y
+      );
+    }
+    throw new Error("Invalid min arguments: both arguments must be either numbers or Vector2 objects");
+  }
+  static clamp(value, min, max) {
+    if (typeof value === "number" && typeof min === "number" && typeof max === "number") {
+      return this.max(min, this.min(value, max));
+    } else if (value instanceof Vector2 && min instanceof Vector2 && max instanceof Vector2) {
+      return new Vector2(
+        this.max(min.x, this.min(value.x, max.x)),
+        this.max(min.y, this.min(value.y, max.y))
+      );
+    }
+    throw new Error("Invalid clamp arguments: all arguments must be either numbers or Vector2 objects");
+  }
+  static lerp(a, b, t) {
+    if (typeof a === "number" && typeof b === "number") {
+      return a + (b - a) * t;
+    } else if (a instanceof Vector2 && b instanceof Vector2) {
+      return new Vector2(
+        a.x + (b.x - a.x) * t,
+        a.y + (b.y - a.y) * t
+      );
+    }
+    throw new Error("Invalid lerp arguments: a and b must be either both numbers or both Vector2 objects");
   }
 };
 
@@ -1513,9 +1615,14 @@ var Sky = class extends Div {
 var Renderer = class extends Div {
   constructor(wrappers) {
     super({
+      size: new Vector2(1920, 1080),
       classNames: ["renderer"],
-      style: "overflow: hidden;width: 1920px; height: 1080px;"
+      style: "transition: transform 0.05s ease-in-out;"
     });
+    this.zoomData = {
+      value: 1,
+      position: new Vector2(0.5, 0.5)
+    };
     this.wrappers = {};
     Object.entries(wrappers).forEach(([name, depth]) => {
       const div = new Div({
@@ -1551,8 +1658,27 @@ var Renderer = class extends Div {
   }
   resize() {
     super.resize();
-    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    this.setPanZoom(void 0, void 0, void 0, true);
+  }
+  setPanZoom(x = this.zoomData.position.x, y = this.zoomData.position.y, zoom = this.zoomData.value, force = false) {
+    if (!force && x === this.zoomData.position.x && y === this.zoomData.position.y && zoom === this.zoomData.value) {
+      return;
+    }
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080) * zoom;
+    const offset = new Vector2(1920 * (zoom - 1), 1080 * (zoom - 1)).multiply(new Vector2(x, y).multiply(-1));
     this.transform.setScale(scale);
+    this.transform.setPosition(offset);
+    this.zoomData.value = zoom;
+    this.zoomData.position = new Vector2(x, y);
+  }
+  pan(x = 0, y = 0) {
+    if (x === 0 && y === 0) {
+      return;
+    }
+    this.setPanZoom(this.zoomData.position.x + x, this.zoomData.position.y + y);
+  }
+  zoom(v) {
+    this.setPanZoom(void 0, void 0, MathUtil.clamp(this.zoomData.value + v, 1, 5));
   }
 };
 
@@ -1596,6 +1722,7 @@ var LogicManager = class _LogicManager extends Main {
     this.mapManager.build();
     this.peopleManager.build();
     this.managers.renderer.add(this.peopleManager.dom, "ui", 1);
+    this.managers.renderer.add(this.mapManager.dom, "ship", 90);
     this.peopleManager.dom.visible = false;
     this.ticker = new Ticker().addCallback(this.tick.bind(this));
     this.shipLayer = this.managers.renderer.getWrapper("ship");
@@ -1604,8 +1731,6 @@ var LogicManager = class _LogicManager extends Main {
     this.shipBGLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
     this.shipBGLayer.visible = false;
     this.shipBGLayer.style("height: 480px; overflow: hidden;");
-    this.container.dom.addEventListener("click", () => {
-    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "s") {
         this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
@@ -1619,23 +1744,51 @@ var LogicManager = class _LogicManager extends Main {
       if (["1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(e.key)) {
         this.timeOffset = $.time - _LogicManager.timeToMs((parseInt(e.key) - 1) / 9 * 24, this.values.secondsPerDay);
       }
+      if (e.key === "z") {
+        this.managers.renderer.zoom(0.1);
+      }
+      if (e.key === "x") {
+        this.managers.renderer.zoom(-0.1);
+      }
+      if (e.key === "ArrowLeft") {
+        this.managers.renderer.pan(-0.02, 0);
+      }
+      if (e.key === "ArrowRight") {
+        this.managers.renderer.pan(0.02, 0);
+      }
+      if (e.key === "ArrowUp") {
+        this.managers.renderer.pan(0, -0.02);
+      }
+      if (e.key === "ArrowDown") {
+        this.managers.renderer.pan(0, 0.02);
+      }
     });
     this.container.dom.addEventListener("resize", () => {
       this.managers.renderer.resize();
     });
+  }
+  setup() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("spd"))
       this.values.secondsPerDay = parseInt(urlParams.get("spd"));
     if (urlParams.get("ship"))
       this.shipBGLayer.visible = true;
-  }
-  setup() {
+    if (urlParams.get("zoom") !== null)
+      this.managers.renderer.setPanZoom(void 0, void 0, parseInt(urlParams.get("zoom")));
+    if (urlParams.get("x") !== null)
+      this.managers.renderer.setPanZoom(parseInt(urlParams.get("x")) / 10);
+    if (urlParams.get("y") !== null)
+      this.managers.renderer.setPanZoom(void 0, parseInt(urlParams.get("y")) / 10);
+    if (urlParams.get("open") !== null)
+      this.ship.open = urlParams.get("open") === "true";
+    if (urlParams.get("time") !== null)
+      this.timeOffset = $.time - _LogicManager.timeToMs((parseInt(urlParams.get("time")) - 1) / 9 * 24, this.values.secondsPerDay);
   }
   setTime(time) {
-    this.peopleManager.setTime(time % 24);
-    this.ship.setTime(time % 24);
-    this.shipBG.setTime(time % 24);
-    this.sky.setTime(time % 24);
+    this.peopleManager.setTime(time);
+    this.ship.setTime(time);
+    this.shipBG.setTime(time);
+    this.sky.setTime(time);
     const waveRotation = 1;
     const waveTime = 1e3;
     const waveHeight = 10;
@@ -1652,13 +1805,13 @@ var LogicManager = class _LogicManager extends Main {
     this.shipBGLayer.transform.setPosition(700, wave2BG * waveHeightBG + 350);
   }
   static msToTime(ms, secondsPerDay) {
-    return ms * 24 / 1e3 / secondsPerDay % 24;
+    return ms * 24 / 1e3 / secondsPerDay;
   }
   static timeToMs(time, secondsPerDay) {
     return secondsPerDay * 1e3 / 24 * (time % 24);
   }
   tick() {
-    this.setTime(_LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay));
+    this.setTime(_LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay) % 24);
   }
 };
 
@@ -1973,54 +2126,6 @@ var Container = class extends Div {
   }
 };
 
-// ts/util/math/math.ts
-var MathUtil = class {
-  static max(a, b) {
-    if (typeof a === "number" && typeof b === "number") {
-      return a > b ? a : b;
-    } else if (a instanceof Vector2 && b instanceof Vector2) {
-      return new Vector2(
-        a.x > b.x ? a.x : b.x,
-        a.y > b.y ? a.y : b.y
-      );
-    }
-    throw new Error("Invalid max arguments: both arguments must be either numbers or Vector2 objects");
-  }
-  static min(a, b) {
-    if (typeof a === "number" && typeof b === "number") {
-      return a < b ? a : b;
-    } else if (a instanceof Vector2 && b instanceof Vector2) {
-      return new Vector2(
-        a.x < b.x ? a.x : b.x,
-        a.y < b.y ? a.y : b.y
-      );
-    }
-    throw new Error("Invalid min arguments: both arguments must be either numbers or Vector2 objects");
-  }
-  static clamp(value, min, max) {
-    if (typeof value === "number" && typeof min === "number" && typeof max === "number") {
-      return this.max(min, this.min(value, max));
-    } else if (value instanceof Vector2 && min instanceof Vector2 && max instanceof Vector2) {
-      return new Vector2(
-        this.max(min.x, this.min(value.x, max.x)),
-        this.max(min.y, this.min(value.y, max.y))
-      );
-    }
-    throw new Error("Invalid clamp arguments: all arguments must be either numbers or Vector2 objects");
-  }
-  static lerp(a, b, t) {
-    if (typeof a === "number" && typeof b === "number") {
-      return a + (b - a) * t;
-    } else if (a instanceof Vector2 && b instanceof Vector2) {
-      return new Vector2(
-        a.x + (b.x - a.x) * t,
-        a.y + (b.y - a.y) * t
-      );
-    }
-    throw new Error("Invalid lerp arguments: a and b must be either both numbers or both Vector2 objects");
-  }
-};
-
 // ts/util/html/sprite.ts
 var Sprite = class extends Div {
   constructor(options) {
@@ -2032,7 +2137,7 @@ var Sprite = class extends Div {
         size: "".concat(options.size.x * options.columns, "px ").concat(options.size.y * options.rows, "px"),
         repeat: "no-repeat"
       },
-      style: "transform-origin: ".concat(options.size.x * options.columns / 2, "px ").concat(options.size.y * options.rows / 2, "px;")
+      style: "transform-origin: ".concat(options.size.x * options.columns / 2, "px ").concat(options.size.y * options.rows / 2, "px; image-rendering: pixelated;")
     }, options));
     this.max = options.columns * options.rows;
     this.options = options;
@@ -2053,24 +2158,31 @@ var Sprite = class extends Div {
 };
 
 // ts/visuals/character.ts
-var Character = class extends Sprite {
+var Character = class extends Div {
   constructor(data) {
     super({
+      scale: new Vector2(0.75, 0.75)
+    });
+    this.data = data;
+    this.layers = [];
+    const skin = new Sprite({
       image: "dist/images/Character_skin_colors/".concat(data.skin, ".png"),
       size: new Vector2(100, 64),
       columns: 10,
       rows: 7,
-      value: 0
+      value: 0,
+      position: new Vector2(15, 19)
     });
-    this.data = data;
-    this.layers = [];
+    this.layers.push(skin);
+    this.append(skin);
     this.data.layers.forEach((d) => {
       const layer = new Sprite({
         image: "dist/images/".concat(d, ".png"),
         size: new Vector2(100, 64),
         columns: 10,
         rows: 7,
-        value: 0
+        value: 0,
+        position: new Vector2(15, 19)
       });
       this.layers.push(layer);
       this.append(layer);
@@ -2078,13 +2190,12 @@ var Character = class extends Sprite {
   }
   set value(value) {
     var _a;
-    super.value = value;
     (_a = this.layers) == null ? void 0 : _a.forEach((layer) => {
       layer.value = value;
     });
   }
   get value() {
-    return super.value;
+    return this.layers[0].value;
   }
 };
 
@@ -2133,6 +2244,21 @@ var SleepTask = class extends VisualTask {
     });
   }
 };
+var ShowerTask = class extends VisualTask {
+  constructor({ start, end, location }) {
+    super({
+      name: "Wash",
+      start,
+      end,
+      location,
+      color: "#c7c7ff",
+      priority: 1,
+      animationDuration: 5,
+      animationStart: 0,
+      animationSpeed: 200
+    });
+  }
+};
 var EatTask = class extends VisualTask {
   constructor({ start, end, location }) {
     super({
@@ -2150,7 +2276,16 @@ var EatTask = class extends VisualTask {
 };
 var EngineTask = class extends VisualTask {
   constructor({ start, end, location }) {
-    super({ name: "Office", start, end, location, color: "#e1e1e1" });
+    super({
+      name: "Helm",
+      start,
+      end,
+      location,
+      color: "#e1e1e1",
+      animationDuration: 4,
+      animationStart: 30,
+      animationSpeed: 1e3
+    });
   }
 };
 var WorkTask = class extends VisualTask {
@@ -2165,10 +2300,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Dave",
       tasks: [
-        new EngineTask({ start: 0, end: 8, location: mapManager.getLocation("wheel") }),
-        new EatTask({ start: 8, end: 10, location: mapManager.getLocation("deck3") }),
-        new SleepTask({ start: 10, end: 18, location: mapManager.getLocation("gun3") }),
-        new WorkTask({ start: 18, end: 22, location: mapManager.getLocation("deck4") })
+        new EatTask({ start: 0, end: 1, location: mapManager.getLocation("deck4") }),
+        new EngineTask({ start: 2, end: 10, location: mapManager.getLocation("deck1Wheel") }),
+        new EatTask({ start: 10, end: 11, location: mapManager.getLocation("deck3") }),
+        new SleepTask({ start: 15, end: 23, location: mapManager.getLocation("orlop4") }),
+        new EatTask({ start: 23, end: 24, location: mapManager.getLocation("deck4") })
       ],
       character: new Character({
         skin: "Male_Skin1",
@@ -2184,11 +2320,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Jane",
       tasks: [
-        new SleepTask({ start: 0, end: 2, location: mapManager.getLocation("gun3") }),
-        new WorkTask({ start: 2, end: 6, location: mapManager.getLocation("deck2") }),
-        new EngineTask({ start: 8, end: 16, location: mapManager.getLocation("wheel") }),
-        new EatTask({ start: 16, end: 18, location: mapManager.getLocation("deck3") }),
-        new SleepTask({ start: 18, end: 24, location: mapManager.getLocation("gun3") })
+        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("orlop3") }),
+        new EngineTask({ start: 10, end: 18, location: mapManager.getLocation("deck1Wheel") }),
+        new ShowerTask({ start: 18, end: 19, location: mapManager.getLocation("deck5") }),
+        new EatTask({ start: 19, end: 21, location: mapManager.getLocation("deck4") }),
+        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("orlop3") })
       ],
       character: new Character({
         skin: "Female_Skin2",
@@ -2204,11 +2340,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Andrew",
       tasks: [
-        new EatTask({ start: 0, end: 1, location: mapManager.getLocation("deck3") }),
-        new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("gun3") }),
-        new WorkTask({ start: 10, end: 14, location: mapManager.getLocation("deck2") }),
-        new EngineTask({ start: 15, end: 22, location: mapManager.getLocation("wheel") }),
-        new EatTask({ start: 23, end: 24, location: mapManager.getLocation("deck3") })
+        new EngineTask({ start: 0, end: 2, location: mapManager.getLocation("deck1Wheel") }),
+        new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("orlop4") }),
+        new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("deck5") }),
+        new EatTask({ start: 12, end: 14, location: mapManager.getLocation("deck4") }),
+        new EngineTask({ start: 18, end: 24, location: mapManager.getLocation("deck1Wheel") })
       ],
       character: new Character({
         skin: "Male_Skin3",
@@ -2216,6 +2352,31 @@ function getVisualPeople(mapManager) {
           "Male_Hair/Male_Hair3",
           "Male_Clothing/Boots",
           "Male_Clothing/Green_Shirt_v2",
+          "Male_Clothing/Pants"
+        ]
+      }),
+      offset: new Vector2(-15, 10)
+    },
+    {
+      name: "Tim",
+      tasks: [
+        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("orlop8") }),
+        new EatTask({ start: 7, end: 9, location: mapManager.getLocation("deck4") }),
+        new WorkTask({ start: 9, end: 10, location: mapManager.getLocation("deck2") }),
+        new WorkTask({ start: 10, end: 11, location: mapManager.getLocation("deck3") }),
+        new WorkTask({ start: 11, end: 12, location: mapManager.getLocation("deck4") }),
+        new WorkTask({ start: 12, end: 13, location: mapManager.getLocation("deck5") }),
+        new WorkTask({ start: 14, end: 15, location: mapManager.getLocation("orlop5") }),
+        new WorkTask({ start: 15, end: 16, location: mapManager.getLocation("orlop4") }),
+        new WorkTask({ start: 16, end: 17, location: mapManager.getLocation("orlop3") }),
+        new WorkTask({ start: 17, end: 18, location: mapManager.getLocation("orlop2") }),
+        new ShowerTask({ start: 21, end: 22, location: mapManager.getLocation("deck5") }),
+        new SleepTask({ start: 22, end: 24, location: mapManager.getLocation("orlop2") })
+      ],
+      character: new Character({
+        skin: "Male_Skin4",
+        layers: [
+          "Male_Clothing/Boots",
           "Male_Clothing/Pants"
         ]
       }),
@@ -2229,13 +2390,13 @@ var Person = class {
   constructor(managers, data, scheduleClass) {
     this.managers = managers;
     this.data = data;
-    this.speed = 500;
+    this.speed = 1e3;
     // pixels per hour
     this._phase = "idle";
     this.schedule = new scheduleClass(this.managers, this, {
       tasks: data.tasks
     });
-    this.speed = data.speed || 500;
+    this.speed = data.speed || 1e3;
   }
   get phase() {
     return this._phase;
@@ -2341,7 +2502,9 @@ var PersonVisual = class extends Person {
 document.addEventListener("DOMContentLoaded", async () => {
   const g = new Container();
   document.body.appendChild(g.dom);
-  g.append(new LogicManager(g, { Person: PersonVisual }, getVisualPeople));
+  const manager = new LogicManager(g, { Person: PersonVisual }, getVisualPeople);
+  g.append(manager);
+  manager.setup();
   g.start();
 });
 //# sourceMappingURL=index.js.map

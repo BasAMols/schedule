@@ -26,9 +26,9 @@ export class SleepTask extends VisualTask {
 export class ShowerTask extends VisualTask {
     public constructor({ start, end, location }: { start: TimePeriod; end: TimePeriod; location: MapLocation; }) {
         super({ name: 'Wash', start, end, location, color: '#c7c7ff', priority: 1,
-            animationDuration: 4,
-            animationStart: 30,
-            animationSpeed: 1000,
+            animationDuration: 5,
+            animationStart: 0,
+            animationSpeed: 200,
          });
         
     }
@@ -44,7 +44,11 @@ export class EatTask extends VisualTask {
 }
 export class EngineTask extends VisualTask {
     public constructor({ start, end, location }: { start: TimePeriod; end: TimePeriod; location: MapLocation; }) {
-        super({ name: 'Office', start, end, location, color: '#e1e1e1' });
+        super({ name: 'Helm', start, end, location, color: '#e1e1e1', 
+            animationDuration: 4,
+            animationStart: 30,
+            animationSpeed: 1000,
+         });
     }
 }
 export class WorkTask extends VisualTask {

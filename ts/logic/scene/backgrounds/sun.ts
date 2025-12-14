@@ -11,7 +11,7 @@ export class Sun extends Div {
     overlay: RenderLayer;
     constructor(protected managers: Managers) {
         super({
-            size: ['1920px', '800px'],
+            size: ['3000px', '800px'],
             style: 'overflow: hidden;',
         });
         this.sun = new Div({
@@ -27,7 +27,7 @@ export class Sun extends Div {
 
 
         this.reflectionWrap = new Div({
-            size: ['1920px', '300px'],
+            size: ['3000px', '300px'],
             position: new Vector2(0, 1080 - 300),
             style: 'overflow: hidden;',
         });
@@ -48,7 +48,7 @@ export class Sun extends Div {
             background: {
                 type: 'linear',
                 colors: [
-                    { color: 'rgba(246, 234, 68, 0.25)', position: '0%' },
+                    { color: 'rgba(246, 234, 68, 0.2)', position: '0%' },
                     { color: 'rgba(245, 239, 64, 0)', position: '100%' },
                 ],
                 direction: 'to right',

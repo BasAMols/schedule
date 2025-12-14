@@ -42,16 +42,16 @@ export class MapManager {
     build(): void {
         this.dom = new Div();
         this.mapSvg = new Svg('svg', {
-            size: new Vector2(1000, 1000),
+            size: new Vector2(3000, 2000),
         });
-        this.dom.append(this.mapSvg);
+        // this.dom.append(this.mapSvg);
         for (const connection of this.mapConnections) {
             connection.build();
-            // this.mapSvg.append(connection.line);
+            this.mapSvg.append(connection.line);
         }
         for (const location of Object.values(this.locations)) {
             location.build();
-            // this.mapSvg.append(location.dom);
+            this.mapSvg.append(location.dom);
         }
     }
 }

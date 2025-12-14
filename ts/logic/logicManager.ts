@@ -67,6 +67,7 @@ export class LogicManager<P extends Person> extends Main {
         this.mapManager.build();
         this.peopleManager.build();
         this.managers.renderer.add(this.peopleManager.dom, 'ui', 1);
+        this.managers.renderer.add(this.mapManager.dom, 'ship', 90);
         this.peopleManager.dom.visible = false;
 
         this.ticker = new Ticker().addCallback(this.tick.bind(this));
@@ -77,8 +78,6 @@ export class LogicManager<P extends Person> extends Main {
         this.shipBGLayer.visible = false;
         this.shipBGLayer.style('height: 480px; overflow: hidden;');
 
-        this.container.dom.addEventListener('click', () => {
-        });
         document.addEventListener('keydown', (e) => {
             if (e.key === 's') {
                 this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
@@ -92,28 +91,50 @@ export class LogicManager<P extends Person> extends Main {
             if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
                 this.timeOffset = $.time - LogicManager.timeToMs((parseInt(e.key)-1)/9*24, this.values.secondsPerDay);
             }
+            if (e.key === 'z') {
+                this.managers.renderer.zoom(0.1);
+            }
+            if (e.key === 'x') {
+                this.managers.renderer.zoom(-0.1);
+            }
+            if (e.key === 'ArrowLeft') {
+                this.managers.renderer.pan(-0.02, 0);
+            }
+            if (e.key === 'ArrowRight') {
+                this.managers.renderer.pan(0.02, 0);
+            }
+            if (e.key === 'ArrowUp') {
+                this.managers.renderer.pan(0, -0.02);
+            }
+            if (e.key === 'ArrowDown') {
+                this.managers.renderer.pan(0, 0.02);
+            }
         });
         this.container.dom.addEventListener('resize', () => {
             this.managers.renderer.resize();
         });
 
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
-        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
     }
 
     setup() {
-
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
+        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
+        if (urlParams.get('zoom') !== null) this.managers.renderer.setPanZoom(undefined, undefined,parseInt(urlParams.get('zoom')));    
+        if (urlParams.get('x') !== null) this.managers.renderer.setPanZoom(parseInt(urlParams.get('x'))/10);
+        if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y'))/10);
+        if (urlParams.get('open') !== null) this.ship.open = urlParams.get('open') === 'true';    
+        if (urlParams.get('time') !== null) this.timeOffset = $.time - LogicManager.timeToMs((parseInt(urlParams.get('time'))-1)/9*24, this.values.secondsPerDay);
     }
 
     timeOffset: number = 0;
 
     setTime(time: number): void {
 
-        this.peopleManager.setTime(time % 24);
-        this.ship.setTime(time % 24);
-        this.shipBG.setTime(time % 24);
-        this.sky.setTime(time % 24);
+        this.peopleManager.setTime(time);
+        this.ship.setTime(time);
+        this.shipBG.setTime(time);
+        this.sky.setTime(time);
 
         const waveRotation = 1;
         const waveTime = 1000;
@@ -133,29 +154,13 @@ export class LogicManager<P extends Person> extends Main {
     }
 
     static msToTime(ms: number, secondsPerDay: number): number {
-        return (ms * 24 / 1000 / secondsPerDay) % 24; // this works
+        return (ms * 24 / 1000 / secondsPerDay);
     } 
     static timeToMs(time: number, secondsPerDay: number): number {
-        return ((secondsPerDay*1000) /24 * (time%24)); // this doesnt work
+        return ((secondsPerDay*1000) /24 * (time%24));
     }
 
     tick(): void {
-        this.setTime(LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay));
+        this.setTime(LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay) % 24);
     }
 }
-
-//order of operations:
-// 1. create mapManager with locations
-//    a. each location has a position
-//    b. each location is drawn on the map
-// 2. create mapConnections to connect certain locations
-//    a. each mapConnection has a position
-//    b. each mapConnection is drawn as lines. their distances calculated
-// 2. automatically create routes between locations
-//    a. each route has a list of mapConnections
-//    b. each route has their total distance calculated
-// 3. create peopleManager with people assigned to taskManager
-//    a. create a schedule for each person, creating the tasks in the process
-//    b. each schedule is checked and backfilled with idle time
-//    c. schedules are visualized
-// d. check if a route exists between two locations

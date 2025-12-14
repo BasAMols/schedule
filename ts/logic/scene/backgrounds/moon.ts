@@ -12,7 +12,7 @@ export class Moon extends Div {
     overlay: RenderLayer;
     constructor(protected managers: Managers) {
         super({
-            size: ['1920px', '800px'],
+            size: ['3000px', '800px'],
             style: 'overflow: hidden;',
         });
         this.moon = new Div({
@@ -27,7 +27,7 @@ export class Moon extends Div {
         this.append(this.moon);
 
         this.reflectionWrap = new Div({
-            size: ['1920px', '300px'],
+            size: ['3000px', '300px'],
             position: new Vector2(0, 1080 - 300),
             style: 'overflow: hidden;',
         });
@@ -48,7 +48,7 @@ export class Moon extends Div {
             background: {
                 type: 'linear',
                 colors: [
-                    { color: 'rgba(255, 255, 255, 0.3)', position: '20%' },
+                    { color: 'rgba(255, 255, 255, 0.4)', position: '20%' },
                     { color: 'rgba(255, 255, 255, 0)', position: '80%' },
                 ],
                 direction: 'to right',
@@ -68,12 +68,12 @@ export class Moon extends Div {
         this.overlay.element.transform.setRotation(time / 24 * 360 + 90);
 
         const opacity = timeEaser(time % 24, [
-            [0, 0.5],
+            [0, 0.7],
             [5, 1],
             [6, 0],
             [18, 0],
             [19, 1],
-            [24, 0.5],
+            [24, 0.7],
         ], 24);
         this.overlay.opacity = opacity;
 

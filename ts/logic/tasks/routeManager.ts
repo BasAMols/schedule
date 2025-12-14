@@ -28,6 +28,8 @@ export class RouteManager {
         if (found) {
             return found;
         }
+        console.log(locationA);
+        console.log(locationB);
         return this.createRoute(locationA, locationB);
     }
 
@@ -56,6 +58,8 @@ export class RouteManager {
             connections: MapConnection[],
         }[] = [];
 
+        
+
         for (const neighbor of locationA.neighbors) {
             if (excludeList.includes(neighbor[0])) {
                 continue;
@@ -75,7 +79,8 @@ export class RouteManager {
 
     }
     private createRoute(locationA: MapLocation, locationB: MapLocation): Route {
-
+        console.log(locationA);
+        console.log(locationB);
         const foundRoute = RouteManager.recursiveRoute(locationA, locationB, [], 0, [], []);
 
         if (!foundRoute) {

@@ -1,6 +1,8 @@
 import { Div } from "../util/html/div";
 import { Dom } from "../util/html/dom";
 import { El } from "../util/html/el";
+import { MathUtil } from "../util/math/math";
+import { Utils } from "../util/math/util";
 import { Vector2 } from "../util/math/vector2";
 import { RenderLayer } from "./renderLayer";
 
@@ -12,8 +14,9 @@ export class Renderer extends Div {
     }>;
     constructor(wrappers: Record<RendererWrappers, number>) {
         super({
+            size: new Vector2(1920, 1080),
             classNames: ['renderer'],
-            style: 'overflow: hidden;width: 1920px; height: 1080px;',
+            style: 'transition: transform 0.05s ease-in-out;',
         });
         this.wrappers = {} as typeof this.wrappers;
         Object.entries(wrappers).forEach(([name, depth]) => {
@@ -53,7 +56,39 @@ export class Renderer extends Div {
 
     resize() {
         super.resize();
-        const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        this.setPanZoom(undefined, undefined, undefined, true);
+    }
+
+    private zoomData: {
+        value: number;
+        position: Vector2;
+    } = {
+        value: 1,
+        position: new Vector2(0.5, 0.5),
+    };
+
+    setPanZoom(x: number = this.zoomData.position.x, y: number = this.zoomData.position.y, zoom: number = this.zoomData.value, force: boolean = false) {
+
+        if (!force && x === this.zoomData.position.x && y === this.zoomData.position.y && zoom === this.zoomData.value) {
+            return;
+        }
+
+        const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080)*zoom;
+        const offset = new Vector2(1920*(zoom-1), 1080*(zoom-1)).multiply(new Vector2(x, y).multiply(-1));
         this.transform.setScale(scale);
+        this.transform.setPosition(offset);
+
+        this.zoomData.value = zoom;
+        this.zoomData.position = new Vector2(x, y);
+    }
+
+    pan(x: number = 0, y: number = 0) {
+        if (x === 0 && y === 0) {
+            return;
+        }
+        this.setPanZoom(this.zoomData.position.x + x, this.zoomData.position.y + y);
+    }
+    zoom(v: number) {
+        this.setPanZoom(undefined, undefined, MathUtil.clamp(this.zoomData.value + v, 1, 5));
     }
 }

@@ -6,6 +6,8 @@ import { PersonVisual } from './visuals/visualPerson';
 document.addEventListener("DOMContentLoaded", async () => {
     const g = new Container();
     document.body.appendChild(g.dom);
-    g.append(new LogicManager<PersonVisual>(g, { Person: PersonVisual }, getVisualPeople));
+    const manager = new LogicManager<PersonVisual>(g, { Person: PersonVisual }, getVisualPeople);
+    g.append(manager);
+    manager.setup();
     g.start();
 });
