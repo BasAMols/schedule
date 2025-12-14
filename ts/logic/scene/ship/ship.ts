@@ -62,10 +62,10 @@ export class ShipNight extends ShipTheme {
             front: 'night_front',
             rail: 'night_rail',
         }, [
-            [7, 1],
-            [8, 0],
-            [17, 0],
-            [18, 1],
+            [6, 1],
+            [7, 0],
+            [18, 0],
+            [19, 1],
         ], managers, scale, layer);
     }
 }
@@ -76,10 +76,10 @@ export class ShipDay extends ShipTheme {
             front: 'front',
             rail: 'rail',
         }, [
-            [7, 0],
-            [8, 1],
-            [17, 1],
-            [18, 0],
+            [6, 0],
+            [7, 1],
+            [18, 1],
+            [19, 0],
         ], managers, scale, layer);
     }
 }

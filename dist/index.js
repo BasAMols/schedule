@@ -1301,10 +1301,10 @@ var ShipNight = class extends ShipTheme {
       front: "night_front",
       rail: "night_rail"
     }, [
-      [7, 1],
-      [8, 0],
-      [17, 0],
-      [18, 1]
+      [6, 1],
+      [7, 0],
+      [18, 0],
+      [19, 1]
     ], managers, scale, layer);
   }
 };
@@ -1315,10 +1315,10 @@ var ShipDay = class extends ShipTheme {
       front: "front",
       rail: "rail"
     }, [
-      [7, 0],
-      [8, 1],
-      [17, 1],
-      [18, 0]
+      [6, 0],
+      [7, 1],
+      [18, 1],
+      [19, 0]
     ], managers, scale, layer);
   }
 };
@@ -1503,7 +1503,7 @@ var Sun = class extends Div {
       background: {
         type: "linear",
         colors: [
-          { color: "rgba(246, 234, 68, 0.2)", position: "0%" },
+          { color: "rgba(244, 237, 147, 0.3)", position: "0%" },
           { color: "rgba(245, 239, 64, 0)", position: "100%" }
         ],
         direction: "to right"
@@ -1522,7 +1522,7 @@ var Sun = class extends Div {
     const opacity = timeEaser(time % 24, [
       [6, 0],
       [7, 1],
-      [12.5, 0.3],
+      [12.5, 0.5],
       [17, 1],
       [18, 0]
     ], 24);
