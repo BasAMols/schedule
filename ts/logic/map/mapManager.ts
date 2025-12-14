@@ -19,12 +19,12 @@ export class MapManager {
 
     public constructor(
         private managers: Managers,
-        locations: Record<string, Vector2> = {},
+        locations: Record<string, [Vector2, number]> = {},
         connections: MapConnectionType[] = [],
     ) {
 
         for (const location of Object.entries(locations)) {
-            this.locations[location[0]] = new MapLocation(this.managers, { name: location[0], position: location[1] });
+            this.locations[location[0]] = new MapLocation(this.managers, { name: location[0], position: location[1][0], depth: location[1][1] });
         }
 
         for (const connection of connections) {
@@ -44,7 +44,8 @@ export class MapManager {
         this.mapSvg = new Svg('svg', {
             size: new Vector2(3000, 2000),
         });
-        // this.dom.append(this.mapSvg);
+        this.dom.append(this.mapSvg);
+        this.mapSvg.visible = false;
         for (const connection of this.mapConnections) {
             connection.build();
             this.mapSvg.append(connection.line);

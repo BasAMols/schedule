@@ -20,6 +20,7 @@ export class Person {
     characterDom: Div;
     speed: number = 1000; // pixels per hour
     protected _phase: phase = 'idle';
+    renderLayer: RenderLayer;
     public get phase(): phase {
         return this._phase;
     }
@@ -59,7 +60,7 @@ export class Person {
             // background: { color: 'white' },
             // style: 'box-sizing: border-box; position: absolute; border-radius: 50%; margin-left: -10px; margin-top: -10px; border: 2px solid black; box-sizing: border-box;',
         });
-        this.managers.renderer.add(this.characterDom, 'ship', 50);
+        this.renderLayer = this.managers.renderer.add(this.characterDom, 'ship', 35);
 
         // this.characterDom.append(new Div({
         //     text: this.name,
@@ -82,7 +83,7 @@ export class Person {
             this.direction = undefined;
         }
         this.characterDom.transform.setPosition(info.position);
-
+        this.renderLayer.depth = info.depth;
         this.schedule.setTime(time);
         this.tick();
     }

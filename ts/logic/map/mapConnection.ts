@@ -11,6 +11,7 @@ export interface MapConnectionType {
     to: string;
     path?: string;
     oneWay?: boolean;
+    depth?: number;
 }
 
 export class MapConnection {
@@ -44,7 +45,7 @@ export class MapConnection {
         });
 
         this.distance = (this.line.dom as SVGPathElement).getTotalLength();
-
+        this.data.depth = this.data.depth ?? this.toLocation.data.depth;
     }
 
     getVector(delta: number): Vector2 {

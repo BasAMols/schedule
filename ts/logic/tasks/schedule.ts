@@ -3,10 +3,10 @@ import { Vector2 } from "../../util/math/vector2";
 import { MapLocation } from "../map/mapLocation";
 import { Task, TaskType } from "./task";
 import { TimePeriod } from "./time";
-import { IdleTask } from "./prefabs";
 import { Person, phase } from "../people/person";
 import { Managers } from "../managers";
 import { Travel } from "./travel";
+import { IdleTask } from "../../visuals/prefabs";
 
 export interface ScheduleType {
 	tasks?: (TaskType | Task)[];
@@ -78,8 +78,6 @@ export class Schedule {
 		for (let i: TimePeriod = 0; i < 24; i++) {
 			const from = this.table[i as TimePeriod];
 			const to = this.table[(((i + 1) % 24) as TimePeriod)];
-			console.log(from.data.location);
-			console.log(to.data.location);
 			const route = this.managers.routeManager.findRoute(
 				from.data.location,
 				to.data.location);
@@ -135,16 +133,16 @@ export class Schedule {
 		this.lineDom.transform.setPosition(new Vector2((time % 24) / 24 * (Schedule.TASK_WIDTH * 24), 0));
 	}
 
-	getInfoAtTime(time: number): { phase: phase, position: Vector2, task: Task | undefined } {
+	getInfoAtTime(time: number): { phase: phase, position: Vector2, depth: number, task: Task | undefined } {
 
 		for (const travel of this.travels) {
-			const position = travel.getTimePostion(time % 24);
-			if (position) {
-				return { phase: 'travel', position, task: undefined };
+			const d = travel.getTimePostion(time % 24);
+			if (d) {
+				return { phase: 'travel', position: d[0], depth: d[1], task: undefined };
 			}
 		}
 
 		const task = this.getTaskAtTime(time % 24);
-		return { phase: 'task', position: task?.data.location.data.position ?? new Vector2(0, 0), task: task };
+		return { phase: 'task', position: task?.getLocation() ?? new Vector2(0, 0), depth: task?.getDepth() ?? 1, task: task };
 	}
 }

@@ -31,7 +31,7 @@ export function getVisualPeople(mapManager: MapManager): PersonVisualType[] {
             tasks: [
                 new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("orlop3") }),
                 new EngineTask({ start: 10, end: 18, location: mapManager.getLocation("deck1Wheel") }),
-                new ShowerTask({ start: 18, end: 19, location: mapManager.getLocation("deck5") }),
+                new ShowerTask({ start: 18, end: 19, location: mapManager.getLocation("deck0showers") }),
                 new EatTask({ start: 19, end: 21, location: mapManager.getLocation("deck4") }),
                 new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("orlop3") }),
 
@@ -52,7 +52,7 @@ export function getVisualPeople(mapManager: MapManager): PersonVisualType[] {
             tasks: [
                 new EngineTask({ start: 0, end: 2, location: mapManager.getLocation("deck1Wheel") }),
                 new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("orlop4") }),
-                new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("deck5") }),
+                new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("deck0showers") }),
                 new EatTask({ start: 12, end: 14, location: mapManager.getLocation("deck4") }),
                 new EngineTask({ start: 18, end: 24, location: mapManager.getLocation("deck1Wheel") }),
 
@@ -81,8 +81,8 @@ export function getVisualPeople(mapManager: MapManager): PersonVisualType[] {
                 new WorkTask({ start: 15, end: 16, location: mapManager.getLocation("orlop4") }),
                 new WorkTask({ start: 16, end: 17, location: mapManager.getLocation("orlop3") }),
                 new WorkTask({ start: 17, end: 18, location: mapManager.getLocation("orlop2") }),
-                new ShowerTask({ start: 21, end: 22, location: mapManager.getLocation("deck5") }),
-                new SleepTask({ start: 22, end: 24, location: mapManager.getLocation("orlop2") }),
+                new ShowerTask({ start: 21, end: 22, location: mapManager.getLocation("deck0showers") }),
+                new SleepTask({ start: 22, end: 24, location: mapManager.getLocation("orlop8") }),
 
 
             ],

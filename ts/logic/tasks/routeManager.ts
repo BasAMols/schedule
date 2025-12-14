@@ -28,8 +28,6 @@ export class RouteManager {
         if (found) {
             return found;
         }
-        console.log(locationA);
-        console.log(locationB);
         return this.createRoute(locationA, locationB);
     }
 
@@ -79,8 +77,6 @@ export class RouteManager {
 
     }
     private createRoute(locationA: MapLocation, locationB: MapLocation): Route {
-        console.log(locationA);
-        console.log(locationB);
         const foundRoute = RouteManager.recursiveRoute(locationA, locationB, [], 0, [], []);
 
         if (!foundRoute) {

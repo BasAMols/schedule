@@ -18,17 +18,19 @@ export class SleepTask extends VisualTask {
         super({ name: 'Sleep', start, end, location, color: '#9f9f9f', priority: 0.1, 
             animationDuration: 2,
             animationStart: 68,
-            animationOffset: new Vector2(20, 0),
+            animationOffset: new Vector2(20, -30),
             animationSpeed: 1000,
+            depth: 15,
          });
     }
 }
 export class ShowerTask extends VisualTask {
     public constructor({ start, end, location }: { start: TimePeriod; end: TimePeriod; location: MapLocation; }) {
         super({ name: 'Wash', start, end, location, color: '#c7c7ff', priority: 1,
-            animationDuration: 5,
-            animationStart: 0,
-            animationSpeed: 200,
+            animationDuration: 4,
+            animationStart: 30,
+            animationSpeed: 1000,
+            depth: 10,
          });
         
     }

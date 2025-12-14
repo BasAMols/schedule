@@ -11,12 +11,16 @@ export interface TaskType {
     end: TimePeriod;
     color?: string;
     priority?: number;
+    depth?: number;
 }
 
 export class Task {
     dom: Div;
     public constructor(public data: TaskType) {
         this.data.priority = this.data.priority ?? 0.5;
+        if (!this.data.depth) {
+            this.data.depth = this.data.location.data.depth;
+        }
     }
     build(): void {
         this.dom = new Div({
@@ -29,5 +33,8 @@ export class Task {
 
     getLocation(): Vector2 {
         return this.data.location.data.position;
+    }
+    getDepth(): number {
+        return this.data.depth;
     }
 }

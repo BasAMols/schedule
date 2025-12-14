@@ -52,7 +52,7 @@ export class Travel {
         });
     }
 
-    getTimePostion(time: number): Vector2 | undefined {
+    getTimePostion(time: number): [Vector2, number] | undefined {
         if (time > this.leaveTime && time < this.arrivalTime) {
             return this.data.route.getSegmentVector((time - this.leaveTime)*this.data.subject.speed);
         }

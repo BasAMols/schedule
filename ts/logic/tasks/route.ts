@@ -42,14 +42,14 @@ export class Route {
         this.distance = totalDistance;
     }
 
-    public getSegmentVector(time: number): Vector2 {
+    public getSegmentVector(time: number): [Vector2, number] {
         const segment = this.segments.find(segment => time >= segment.start && time <= segment.end);
         let delta = ((time - segment.start) / segment.distance);
 
         if (segment.direction === -1) {
             delta = 1 - delta;
         }
-        return segment.connection.getVector(delta);
+        return [segment.connection.getVector(delta), segment.connection.data.depth];
     }
 
     createTravel(subject: Person, arrivalTime: TimePeriod): Travel {

@@ -8,6 +8,7 @@ import { MapConnection } from "./mapConnection";
 export interface MapLocationType {
     position: Vector2;
     name: string;
+    depth: number;
 }
 
 export class MapLocation {
@@ -17,6 +18,7 @@ export class MapLocation {
     dom: Svg;
 
     public constructor(private managers: Managers, public data: MapLocationType) {
+        this.data.depth = this.data.depth ?? 0;
     }
     registerConnection(connection: MapConnection, a: MapLocation, b: MapLocation): void {
         this.connections.push(connection);

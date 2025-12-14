@@ -24,8 +24,8 @@ export class LogicManager<P extends Person> extends Main {
     private values: {
         secondsPerDay: number;
     } = {
-        secondsPerDay: 50,
-    };
+            secondsPerDay: 50,
+        };
     managers: Managers<P> = {
         mapManager: null,
         peopleManager: null,
@@ -78,6 +78,22 @@ export class LogicManager<P extends Person> extends Main {
         this.shipBGLayer.visible = false;
         this.shipBGLayer.style('height: 480px; overflow: hidden;');
 
+
+    }
+
+    setup() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
+        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
+        if (urlParams.get('zoom') !== null) this.managers.renderer.setPanZoom(undefined, undefined, parseInt(urlParams.get('zoom')));
+        if (urlParams.get('x') !== null) this.managers.renderer.setPanZoom(parseInt(urlParams.get('x')) / 10);
+        if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y')) / 10);
+        if (urlParams.get('open') !== null) this.ship.open = Boolean(urlParams.get('open'));
+        if (urlParams.get('time') !== null) this.timeOffset = 0 - LogicManager.timeToMs((parseInt(urlParams.get('time')) - 1) / 9 * 24, this.values.secondsPerDay);
+        if (urlParams.get('debug') !== null) {
+            this.mapManager.mapSvg.visible = true;
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 's') {
                 this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
@@ -89,7 +105,7 @@ export class LogicManager<P extends Person> extends Main {
                 this.shipBGLayer.visible = !this.shipBGLayer.visible;
             }
             if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
-                this.timeOffset = $.time - LogicManager.timeToMs((parseInt(e.key)-1)/9*24, this.values.secondsPerDay);
+                this.timeOffset = $.time - LogicManager.timeToMs((parseInt(e.key) - 1) / 9 * 24, this.values.secondsPerDay);
             }
             if (e.key === 'z') {
                 this.managers.renderer.zoom(0.1);
@@ -113,18 +129,6 @@ export class LogicManager<P extends Person> extends Main {
         this.container.dom.addEventListener('resize', () => {
             this.managers.renderer.resize();
         });
-
-    }
-
-    setup() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
-        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
-        if (urlParams.get('zoom') !== null) this.managers.renderer.setPanZoom(undefined, undefined,parseInt(urlParams.get('zoom')));    
-        if (urlParams.get('x') !== null) this.managers.renderer.setPanZoom(parseInt(urlParams.get('x'))/10);
-        if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y'))/10);
-        if (urlParams.get('open') !== null) this.ship.open = urlParams.get('open') === 'true';    
-        if (urlParams.get('time') !== null) this.timeOffset = $.time - LogicManager.timeToMs((parseInt(urlParams.get('time'))-1)/9*24, this.values.secondsPerDay);
     }
 
     timeOffset: number = 0;
@@ -150,17 +154,17 @@ export class LogicManager<P extends Person> extends Main {
         const waveBG = Math.sin(($.time + 2000) / waveTime);
         const wave2BG = Math.sin((($.time + 2000) - 800) / 1000);
         this.shipBGLayer.transform.setRotation(waveBG * waveRotationBG);
-        this.shipBGLayer.transform.setPosition(700, wave2BG * waveHeightBG +350);
+        this.shipBGLayer.transform.setPosition(700, wave2BG * waveHeightBG + 350);
     }
 
     static msToTime(ms: number, secondsPerDay: number): number {
         return (ms * 24 / 1000 / secondsPerDay);
-    } 
+    }
     static timeToMs(time: number, secondsPerDay: number): number {
-        return ((secondsPerDay*1000) /24 * (time%24));
+        return ((secondsPerDay * 1000) / 24 * (time % 24));
     }
 
     tick(): void {
-        this.setTime(LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay) % 24);
+        this.setTime((LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay)+24) % 24);
     }
 }

@@ -38,7 +38,7 @@ export class Renderer extends Div {
         let layer: RenderLayer;
         if (element instanceof RenderLayer) {
             layer = element;
-            if (depth) {
+            if (depth !== undefined) {
                 layer.depth = depth;
             }
             if (options) {
