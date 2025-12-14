@@ -44,7 +44,7 @@ export abstract class ShipTheme {
         let opacity = timeEaser(time % 24, this.time, 24);
         this.layers.back.renderLayer.opacity = opacity;
         this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
-        this.layers.rail.renderLayer.opacity = (1 - this.open) * opacity;
+        this.layers.rail.renderLayer.opacity = 0;
     }
     private _open: number = 0;
     public get open(): number {
@@ -58,9 +58,9 @@ export abstract class ShipTheme {
 export class ShipNight extends ShipTheme {
     constructor(managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         super({
-            back: 'night_back',
-            front: 'night_front',
-            rail: 'night_rail',
+            back: '1_int3',
+            front: '1_rail',
+            rail: '1_rail',
         }, [
             [6, 1],
             [7, 0],
@@ -72,9 +72,9 @@ export class ShipNight extends ShipTheme {
 export class ShipDay extends ShipTheme {
     constructor(managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         super({
-            back: 'back',
-            front: 'front',
-            rail: 'rail',
+            back: '0_int3',
+            front: '0_rail',
+            rail: '0_rail',
         }, [
             [6, 0],
             [7, 1],
