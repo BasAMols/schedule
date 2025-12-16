@@ -12,6 +12,7 @@ import { Sky } from "./scene/backgrounds/sky";
 import { Renderer } from "../render/renderer";
 import { RenderLayer } from "../render/renderLayer";
 import { Div } from "../util/html/div";
+import { Debug } from "./debug";
 
 export interface LogicManagerClasses<P extends Person> {
     Person: new (managers: Managers<P>, data: PersonType) => P;
@@ -44,6 +45,7 @@ export class LogicManager<P extends Person> extends Main {
     shipLayer: Div;
     shipBG: Ship;
     shipBGLayer: Div;
+    debug: Debug;
     public constructor(
         public container: Container,
         protected classes: LogicManagerClasses<P>,
@@ -51,6 +53,8 @@ export class LogicManager<P extends Person> extends Main {
     ) {
         super(container);
         container.append(this.managers.renderer);
+        container.append(this.debug = new Debug(this.managers));
+
         this.sky = new Sky(this.managers);
         this.shipBG = new Ship(this.managers, 0.20, 'shipBG');
         this.ship = new Ship(this.managers);
@@ -64,11 +68,14 @@ export class LogicManager<P extends Person> extends Main {
         this.managers.peopleManager = this.peopleManager;
         this.managers.routeManager = this.mapManager.routeManager;
 
+
         this.mapManager.build();
         this.peopleManager.build();
-        this.managers.renderer.add(this.peopleManager.dom, 'ui', 1);
         this.managers.renderer.add(this.mapManager.dom, 'ship', 90);
         this.peopleManager.dom.visible = false;
+
+        container.append(this.peopleManager.dom);
+
 
         this.ticker = new Ticker().addCallback(this.tick.bind(this));
         this.shipLayer = this.managers.renderer.getWrapper('ship');
@@ -90,9 +97,9 @@ export class LogicManager<P extends Person> extends Main {
         if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y')) / 10);
         if (urlParams.get('open') !== null) this.ship.open = Boolean(urlParams.get('open'));
         if (urlParams.get('time') !== null) this.timeOffset = 0 - LogicManager.timeToMs((parseInt(urlParams.get('time')) - 1) / 9 * 24, this.values.secondsPerDay);
-        if (urlParams.get('debug') !== null) {
-            this.mapManager.mapSvg.visible = true;
-        }
+        
+        this.debug.enabled = Boolean(urlParams.get('debug'));
+
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 's') {
@@ -165,6 +172,6 @@ export class LogicManager<P extends Person> extends Main {
     }
 
     tick(): void {
-        this.setTime((LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay)+24) % 24);
+        this.setTime((LogicManager.msToTime($.time - this.timeOffset, this.values.secondsPerDay) + 24) % 24);
     }
 }

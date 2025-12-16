@@ -7,7 +7,7 @@ import { Vector2 } from "../../../util/math/vector2";
 import { Managers } from "../../managers";
 import { TimePeriod } from "../../tasks/time";
 
-export type ShipThemeLayers = 'ext' | 'int0' | 'int1' | 'int2' | 'int3' | 'overlay';
+export type ShipThemeLayers = 'ext' | 'back' | 'mid' | 'front';
 
 export class ShipTheme {
     private layers: Record<ShipThemeLayers, {
@@ -23,8 +23,8 @@ export class ShipTheme {
                 },
                 scale: new Vector2(scale, scale),
                 style: 'opacity: 1; transition: opacity 0.1s ease-in-out;',
-                size: new Vector2(3840, 3200),
-                position: new Vector2(300, -120),
+                size: new Vector2(3840, 2800),
+                position: new Vector2(300, -120 + 150),
             });
             return [layer, {
                 div,
@@ -35,11 +35,9 @@ export class ShipTheme {
             renderLayer: RenderLayer;
         }>;
 
-        this.managers.renderer.add(this.layers.int0.renderLayer, layer, 0);
-        this.managers.renderer.add(this.layers.int1.renderLayer, layer, 10);
-        this.managers.renderer.add(this.layers.int2.renderLayer, layer, 20);
-        this.managers.renderer.add(this.layers.int3.renderLayer, layer, 30);
-        this.managers.renderer.add(this.layers.overlay.renderLayer, layer, 40);
+        this.managers.renderer.add(this.layers.back.renderLayer, layer, 0);
+        this.managers.renderer.add(this.layers.mid.renderLayer, layer, 20);
+        this.managers.renderer.add(this.layers.front.renderLayer, layer, 40);
         this.managers.renderer.add(this.layers.ext.renderLayer, layer, 100);
 
         this.setTime(0);
@@ -48,10 +46,9 @@ export class ShipTheme {
     setTime(time: number) {
         let opacity = timeEaser(time % 24, this.time, 24);
         this.layers.ext.renderLayer.opacity = 0;
-        this.layers.int1.renderLayer.opacity = opacity;
-        this.layers.int2.renderLayer.opacity = opacity;
-        this.layers.int3.renderLayer.opacity = opacity;
-        this.layers.overlay.renderLayer.opacity = (1 - this.open) * opacity;
+        this.layers.back.renderLayer.opacity = opacity;
+        this.layers.mid.renderLayer.opacity = opacity;
+        this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
     }
     private _open: number = 0;
     public get open(): number {
@@ -67,22 +64,29 @@ export class Ship {
     day: ShipTheme;
     night: ShipTheme;
     morning: ShipTheme;
+    evening: ShipTheme;
     constructor(protected managers: Managers, scale: number = 0.35, layer: RendererWrappers = 'ship') {
         this.night = new ShipTheme(
-            { int0: '1_int0', int1: '1_int1', int2: '1_int2', int3: '1_int3', overlay: '1_rail', ext: '1_ext', },
+            { back: '/animationNight/0001', mid: '/animationNight/0002', front: '/animationNight/0003', ext: '/animationNight/0000', },
             [[6, 1], [7, 0], [17, 0], [18, 1]],
             this.managers, scale, layer
         );
 
         this.morning = new ShipTheme(
-            { int0: '2_int0', int1: '2_int1', int2: '2_int2', int3: '2_int3', overlay: '2_rail', ext: '2_ext', },
-            [[6, 0], [7, 1], [12, 1], [14, 0]],
+            { back: '/animationSunRise/0001', mid: '/animationSunRise/0002', front: '/animationSunRise/0003', ext: '/animationSunRise/0000', },
+            [[6, 0], [7, 1], [9, 1], [11, 0]],
             this.managers, scale, layer
         );
 
         this.day = new ShipTheme(
-            { int0: '0_int0', int1: '0_int1', int2: '0_int2', int3: '0_int3', overlay: '0_rail', ext: '0_ext', },
-            [[12, 0], [14, 1], [17, 1], [18, 0]],
+            { back: '/animationDay/0001', mid: '/animationDay/0002', front: '/animationDay/0003', ext: '/animationDay/0000', },
+            [[9, 0], [11, 1], [14, 1], [16, 0]],
+            this.managers, scale, layer
+        );
+
+        this.evening = new ShipTheme(
+            { back: '/animationSunSet/0001', mid: '/animationSunSet/0002', front: '/animationSunSet/0003', ext: '/animationSunSet/0000', },
+            [[14, 0], [16, 1], [17, 1], [18, 0]],
             this.managers, scale, layer
         );
     }
@@ -91,6 +95,7 @@ export class Ship {
         this.night.setTime(time % 24);
         this.morning.setTime(time % 24);
         this.day.setTime(time % 24);
+        this.evening.setTime(time % 24);
 
     }
     private _open: boolean = false;
@@ -102,6 +107,7 @@ export class Ship {
         this.day.open = Number(value);
         this.night.open = Number(value);
         this.morning.open = Number(value);
+        this.evening.open = Number(value);
     }
 
 }

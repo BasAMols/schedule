@@ -30,7 +30,6 @@ export class ShowerTask extends VisualTask {
             animationDuration: 4,
             animationStart: 30,
             animationSpeed: 1000,
-            depth: 10,
          });
         
     }

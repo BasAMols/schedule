@@ -42,7 +42,8 @@ export class MapManager {
     build(): void {
         this.dom = new Div();
         this.mapSvg = new Svg('svg', {
-            size: new Vector2(3000, 2000),
+            size: new Vector2(3000, 3000),
+            style: 'background: rgba(255, 255, 255, 0.3);',
         });
         this.dom.append(this.mapSvg);
         this.mapSvg.visible = false;

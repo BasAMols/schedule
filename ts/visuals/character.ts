@@ -19,7 +19,7 @@ export class Character extends Div {
             columns: 10,
             rows: 7,
             value: 0,
-            position: new Vector2(15, 19),
+            position: new Vector2(15, 17),
         });
         this.layers.push(skin);
         this.append(skin);
@@ -30,7 +30,7 @@ export class Character extends Div {
                 columns: 10,
                 rows: 7,
                 value: 0,
-                position: new Vector2(15, 19),
+                position: new Vector2(15, 17),
             });
             this.layers.push(layer);
             this.append(layer);

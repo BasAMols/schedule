@@ -644,8 +644,7 @@ var ShowerTask = class extends VisualTask {
       priority: 1,
       animationDuration: 4,
       animationStart: 30,
-      animationSpeed: 1e3,
-      depth: 10
+      animationSpeed: 1e3
     });
   }
 };
@@ -1039,7 +1038,8 @@ var MapManager = class {
   build() {
     this.dom = new Div();
     this.mapSvg = new Svg("svg", {
-      size: new Vector2(3e3, 2e3)
+      size: new Vector2(3e3, 3e3),
+      style: "background: rgba(255, 255, 255, 0.3);"
     });
     this.dom.append(this.mapSvg);
     this.mapSvg.visible = false;
@@ -1101,63 +1101,173 @@ var PeopleManager = class {
 
 // ts/logic/map/list.ts
 var mapLocations = {
-  deck0: [new Vector2(555, 785), 35],
-  deck0showers: [new Vector2(550, 775), 20],
-  deck1: [new Vector2(610, 792), 35],
-  deck1Wheel: [new Vector2(615, 789), 35],
-  deck2: [new Vector2(720, 800), 35],
-  deck2Stair: [new Vector2(730, 794), 35],
-  deck3: [new Vector2(820, 807), 35],
-  deck4: [new Vector2(1e3, 809), 35],
-  deck5: [new Vector2(1170, 800), 35],
-  gun1: [new Vector2(435, 803), 35],
-  gun2: [new Vector2(550, 828), 35],
-  gun3: [new Vector2(699, 845), 35],
-  gun4: [new Vector2(815, 853), 35],
-  gun4Stair: [new Vector2(800, 845), 35],
-  gun5: [new Vector2(890, 854), 35],
-  gun6: [new Vector2(1010, 850), 35],
-  gun6Stair: [new Vector2(1030, 843), 35],
-  gun7: [new Vector2(1129, 840), 35],
-  gun8: [new Vector2(1249, 822), 35],
-  orlop1: [new Vector2(455, 853), 35],
-  orlop2: [new Vector2(550, 872), 35],
-  orlop3: [new Vector2(699, 885), 35],
-  orlop4: [new Vector2(815, 890), 35],
-  orlop5: [new Vector2(890, 892), 35],
-  orlop6: [new Vector2(1e3, 892), 35],
-  orlop7: [new Vector2(1110, 886), 35],
-  orlop7Stair: [new Vector2(1095, 883), 35],
-  orlop8: [new Vector2(1249, 866), 35]
+  bridgeDeckCabin00: [new Vector2(340, 717), 15],
+  bridgeDeckCabin01: [new Vector2(404, 717), 15],
+  bridgeDeckCabin02: [new Vector2(447, 717), 15],
+  bridgeDeck00: [new Vector2(470, 740), 25],
+  bridgeDeck01: [new Vector2(530, 740), 25],
+  bridgeDeck02: [new Vector2(570, 740), 25],
+  bridgeDeck03: [new Vector2(600, 740), 25],
+  bridgeDeck04: [new Vector2(666, 740), 25],
+  mainDeck00: [new Vector2(680, 770), 25],
+  mainDeck01: [new Vector2(730, 770), 25],
+  mainDeck02: [new Vector2(780, 770), 25],
+  mainDeck03: [new Vector2(830, 770), 25],
+  mainDeck04: [new Vector2(880, 770), 25],
+  mainDeck05: [new Vector2(930, 770), 25],
+  mainDeck06: [new Vector2(980, 770), 25],
+  mainDeck07: [new Vector2(1030, 770), 25],
+  mainDeck08: [new Vector2(1080, 770), 25],
+  mainDeck09: [new Vector2(1130, 770), 25],
+  mainDeck10: [new Vector2(1180, 770), 25],
+  gunDeck00: [new Vector2(403, 818), 25],
+  gunDeck01: [new Vector2(453, 818), 25],
+  gunDeck02: [new Vector2(503, 818), 25],
+  gunDeck03: [new Vector2(553, 818), 25],
+  gunDeck04: [new Vector2(603, 818), 25],
+  gunDeck05: [new Vector2(653, 818), 25],
+  gunDeck06: [new Vector2(703, 818), 25],
+  gunDeck07: [new Vector2(753, 818), 25],
+  gunDeck08: [new Vector2(803, 818), 25],
+  gunDeck09: [new Vector2(853, 818), 25],
+  gunDeck10: [new Vector2(903, 818), 25],
+  gunDeck11: [new Vector2(953, 818), 25],
+  gunDeck12: [new Vector2(1003, 818), 25],
+  gunDeck13: [new Vector2(1053, 818), 25],
+  gunDeck14: [new Vector2(1103, 818), 25],
+  gunDeck15: [new Vector2(1153, 818), 25],
+  gunDeck16: [new Vector2(1203, 818), 25],
+  gunDeck17: [new Vector2(1253, 818), 25],
+  orlopDeck00: [new Vector2(403, 861), 25],
+  orlopDeck01: [new Vector2(453, 861), 25],
+  orlopDeck02: [new Vector2(503, 861), 25],
+  orlopDeck03: [new Vector2(553, 861), 25],
+  orlopDeck04: [new Vector2(603, 861), 25],
+  orlopDeck05: [new Vector2(653, 861), 25],
+  orlopDeck06: [new Vector2(703, 861), 25],
+  orlopDeck07: [new Vector2(753, 861), 25],
+  orlopDeck08: [new Vector2(803, 861), 25],
+  orlopDeck09: [new Vector2(853, 861), 25],
+  orlopDeck10: [new Vector2(903, 861), 25],
+  orlopDeck11: [new Vector2(953, 861), 25],
+  orlopDeck12: [new Vector2(1003, 861), 25],
+  orlopDeck13: [new Vector2(1053, 861), 25],
+  orlopDeck14: [new Vector2(1103, 861), 25],
+  orlopDeck15: [new Vector2(1153, 861), 25],
+  orlopDeck16: [new Vector2(1203, 861), 25],
+  orlopDeck17: [new Vector2(1253, 861), 25],
+  bridgeLoftStair: [new Vector2(488, 733), 25],
+  loftBridgeStair: [new Vector2(460, 715), 25],
+  bridgeMainStair: [new Vector2(676, 735), 25],
+  mainBridgeStair: [new Vector2(709, 765), 25],
+  mainGunStair1: [new Vector2(722, 761), 15],
+  gunMainStair1: [new Vector2(722, 820), 30],
+  mainGunStair2: [new Vector2(1060, 761), 15],
+  gunMainStair2: [new Vector2(1060, 820), 30],
+  orlopGunStair1: [new Vector2(722, 865), 15],
+  gunOrlopStair1: [new Vector2(722, 813), 30],
+  orlopGunStair2: [new Vector2(1060, 865), 15],
+  gunOrlopStair2: [new Vector2(1060, 813), 30]
 };
 var mapConnections = [
-  { from: "deck0", to: "deck0showers" },
-  { from: "deck0", to: "deck1" },
-  { from: "deck1", to: "deck1Wheel" },
-  { from: "deck1", to: "deck2" },
-  { from: "deck2", to: "deck3" },
-  { from: "deck3", to: "deck4" },
-  { from: "deck4", to: "deck5" },
-  { from: "gun1", to: "gun2" },
-  { from: "gun2", to: "gun3" },
-  { from: "gun3", to: "gun4" },
-  { from: "gun4", to: "gun5" },
-  { from: "gun5", to: "gun6" },
-  { from: "gun6", to: "gun7" },
-  { from: "gun7", to: "gun8" },
-  { from: "orlop1", to: "orlop2" },
-  { from: "orlop2", to: "orlop3" },
-  { from: "orlop3", to: "orlop4" },
-  { from: "orlop4", to: "orlop5" },
-  { from: "orlop5", to: "orlop6" },
-  { from: "orlop6", to: "orlop7" },
-  { from: "orlop7", to: "orlop8" },
-  { from: "deck2", to: "deck2Stair", depth: 5 },
-  { from: "deck2Stair", to: "gun4Stair", depth: 5 },
-  { from: "gun4Stair", to: "gun4", depth: 5 },
-  { from: "gun6", to: "gun6Stair", depth: 5 },
-  { from: "gun6Stair", to: "orlop7Stair", depth: 5 },
-  { from: "orlop7Stair", to: "orlop7", depth: 5 }
+  { from: "bridgeDeckCabin00", to: "bridgeDeckCabin01" },
+  { from: "bridgeDeckCabin01", to: "bridgeDeckCabin02" },
+  { from: "bridgeDeckCabin02", to: "bridgeDeck00" },
+  { from: "bridgeDeck00", to: "bridgeDeck01" },
+  { from: "bridgeDeck01", to: "bridgeDeck02" },
+  { from: "bridgeDeck02", to: "bridgeDeck03" },
+  { from: "bridgeDeck03", to: "bridgeDeck04" },
+  { from: "bridgeDeck04", to: "bridgeDeck01" },
+  { from: "mainDeck00", to: "mainDeck01" },
+  { from: "mainDeck01", to: "mainDeck02" },
+  { from: "mainDeck02", to: "mainDeck03" },
+  { from: "mainDeck03", to: "mainDeck04" },
+  { from: "mainDeck04", to: "mainDeck05" },
+  { from: "mainDeck05", to: "mainDeck06" },
+  { from: "mainDeck06", to: "mainDeck07" },
+  { from: "mainDeck07", to: "mainDeck08" },
+  { from: "mainDeck08", to: "mainDeck09" },
+  { from: "mainDeck09", to: "mainDeck10" },
+  { from: "gunDeck00", to: "gunDeck01" },
+  { from: "gunDeck01", to: "gunDeck02" },
+  { from: "gunDeck02", to: "gunDeck03" },
+  { from: "gunDeck03", to: "gunDeck04" },
+  { from: "gunDeck04", to: "gunDeck05" },
+  { from: "gunDeck05", to: "gunDeck06" },
+  { from: "gunDeck06", to: "gunDeck07" },
+  { from: "gunDeck07", to: "gunDeck08" },
+  { from: "gunDeck08", to: "gunDeck09" },
+  { from: "gunDeck09", to: "gunDeck10" },
+  { from: "gunDeck10", to: "gunDeck11" },
+  { from: "gunDeck11", to: "gunDeck12" },
+  { from: "gunDeck12", to: "gunDeck13" },
+  { from: "gunDeck13", to: "gunDeck14" },
+  { from: "gunDeck14", to: "gunDeck15" },
+  { from: "gunDeck15", to: "gunDeck16" },
+  { from: "gunDeck16", to: "gunDeck17" },
+  { from: "orlopDeck00", to: "orlopDeck01" },
+  { from: "orlopDeck01", to: "orlopDeck02" },
+  { from: "orlopDeck02", to: "orlopDeck03" },
+  { from: "orlopDeck03", to: "orlopDeck04" },
+  { from: "orlopDeck04", to: "orlopDeck05" },
+  { from: "orlopDeck05", to: "orlopDeck06" },
+  { from: "orlopDeck06", to: "orlopDeck07" },
+  { from: "orlopDeck07", to: "orlopDeck08" },
+  { from: "orlopDeck08", to: "orlopDeck09" },
+  { from: "orlopDeck09", to: "orlopDeck10" },
+  { from: "orlopDeck10", to: "orlopDeck11" },
+  { from: "orlopDeck11", to: "orlopDeck12" },
+  { from: "orlopDeck12", to: "orlopDeck13" },
+  { from: "orlopDeck13", to: "orlopDeck14" },
+  { from: "orlopDeck14", to: "orlopDeck15" },
+  { from: "orlopDeck15", to: "orlopDeck16" },
+  { from: "orlopDeck16", to: "orlopDeck17" },
+  { from: "bridgeLoftStair", to: "loftBridgeStair" },
+  { from: "bridgeMainStair", to: "mainBridgeStair" },
+  { from: "mainGunStair1", to: "gunMainStair1" },
+  { from: "mainGunStair2", to: "gunMainStair2" },
+  { from: "orlopGunStair1", to: "gunOrlopStair1" },
+  { from: "orlopGunStair2", to: "gunOrlopStair2" },
+  { from: "bridgeMainStair", to: "bridgeDeck04" },
+  { from: "bridgeDeckCabin02", to: "loftBridgeStair" },
+  { from: "mainBridgeStair", to: "mainDeck00" },
+  { from: "mainBridgeStair", to: "mainDeck01" },
+  { from: "mainGunStair1", to: "mainBridgeStair" },
+  { from: "mainGunStair1", to: "mainDeck02" },
+  { from: "gunMainStair1", to: "gunDeck06" },
+  { from: "gunMainStair1", to: "gunDeck07" },
+  { from: "gunOrlopStair1", to: "gunDeck06" },
+  { from: "gunOrlopStair1", to: "gunDeck07" },
+  { from: "orlopGunStair1", to: "orlopDeck06" },
+  { from: "orlopGunStair1", to: "orlopDeck07" },
+  { from: "mainGunStair2", to: "mainDeck07" },
+  { from: "mainGunStair2", to: "mainDeck08" },
+  { from: "gunMainStair2", to: "gunDeck13" },
+  { from: "gunMainStair2", to: "gunDeck14" },
+  { from: "gunOrlopStair2", to: "gunDeck12" },
+  { from: "gunOrlopStair2", to: "gunDeck14" },
+  { from: "orlopGunStair2", to: "orlopDeck13" },
+  { from: "orlopGunStair2", to: "orlopDeck14" }
+  // { from: "gun1", to: "gun2" },
+  // { from: "gun2", to: "gun3" },
+  // { from: "gun3", to: "gun4" },
+  // { from: "gun4", to: "gun5" },
+  // { from: "gun5", to: "gun6" },
+  // { from: "gun6", to: "gun7" },
+  // { from: "gun7", to: "gun8" },
+  // { from: "orlop1", to: "orlop2" },
+  // { from: "orlop2", to: "orlop3" },
+  // { from: "orlop3", to: "orlop4" },
+  // { from: "orlop4", to: "orlop5" },
+  // { from: "orlop5", to: "orlop6" },
+  // { from: "orlop6", to: "orlop7" },
+  // { from: "orlop7", to: "orlop8" },
+  // { from: "deck2", to: "deck2Stair", depth: 5 },
+  // { from: "deck2Stair", to: "gun4Stair", depth: 5 },
+  // { from: "gun4Stair", to: "gun4", depth: 5 },
+  // { from: "gun6", to: "gun6Stair", depth: 5 },
+  // { from: "gun6Stair", to: "orlop7Stair", depth: 5 },
+  // { from: "orlop7Stair", to: "orlop7", depth: 5 },
 ];
 
 // ts/util/game/main.ts
@@ -1366,29 +1476,26 @@ var ShipTheme = class {
         },
         scale: new Vector2(scale, scale),
         style: "opacity: 1; transition: opacity 0.1s ease-in-out;",
-        size: new Vector2(3840, 3200),
-        position: new Vector2(300, -120)
+        size: new Vector2(3840, 2800),
+        position: new Vector2(300, -120 + 150)
       });
       return [layer2, {
         div,
         renderLayer: new RenderLayer(div, 40)
       }];
     }));
-    this.managers.renderer.add(this.layers.int0.renderLayer, layer, 0);
-    this.managers.renderer.add(this.layers.int1.renderLayer, layer, 10);
-    this.managers.renderer.add(this.layers.int2.renderLayer, layer, 20);
-    this.managers.renderer.add(this.layers.int3.renderLayer, layer, 30);
-    this.managers.renderer.add(this.layers.overlay.renderLayer, layer, 40);
+    this.managers.renderer.add(this.layers.back.renderLayer, layer, 0);
+    this.managers.renderer.add(this.layers.mid.renderLayer, layer, 20);
+    this.managers.renderer.add(this.layers.front.renderLayer, layer, 40);
     this.managers.renderer.add(this.layers.ext.renderLayer, layer, 100);
     this.setTime(0);
   }
   setTime(time) {
     let opacity = timeEaser(time % 24, this.time, 24);
     this.layers.ext.renderLayer.opacity = 0;
-    this.layers.int1.renderLayer.opacity = opacity;
-    this.layers.int2.renderLayer.opacity = opacity;
-    this.layers.int3.renderLayer.opacity = opacity;
-    this.layers.overlay.renderLayer.opacity = (1 - this.open) * opacity;
+    this.layers.back.renderLayer.opacity = opacity;
+    this.layers.mid.renderLayer.opacity = opacity;
+    this.layers.front.renderLayer.opacity = (1 - this.open) * opacity;
   }
   get open() {
     return this._open;
@@ -1402,22 +1509,29 @@ var Ship = class {
     this.managers = managers;
     this._open = false;
     this.night = new ShipTheme(
-      { int0: "1_int0", int1: "1_int1", int2: "1_int2", int3: "1_int3", overlay: "1_rail", ext: "1_ext" },
+      { back: "/animationNight/0001", mid: "/animationNight/0002", front: "/animationNight/0003", ext: "/animationNight/0000" },
       [[6, 1], [7, 0], [17, 0], [18, 1]],
       this.managers,
       scale,
       layer
     );
     this.morning = new ShipTheme(
-      { int0: "2_int0", int1: "2_int1", int2: "2_int2", int3: "2_int3", overlay: "2_rail", ext: "2_ext" },
-      [[6, 0], [7, 1], [12, 1], [14, 0]],
+      { back: "/animationSunRise/0001", mid: "/animationSunRise/0002", front: "/animationSunRise/0003", ext: "/animationSunRise/0000" },
+      [[6, 0], [7, 1], [9, 1], [11, 0]],
       this.managers,
       scale,
       layer
     );
     this.day = new ShipTheme(
-      { int0: "0_int0", int1: "0_int1", int2: "0_int2", int3: "0_int3", overlay: "0_rail", ext: "0_ext" },
-      [[12, 0], [14, 1], [17, 1], [18, 0]],
+      { back: "/animationDay/0001", mid: "/animationDay/0002", front: "/animationDay/0003", ext: "/animationDay/0000" },
+      [[9, 0], [11, 1], [14, 1], [16, 0]],
+      this.managers,
+      scale,
+      layer
+    );
+    this.evening = new ShipTheme(
+      { back: "/animationSunSet/0001", mid: "/animationSunSet/0002", front: "/animationSunSet/0003", ext: "/animationSunSet/0000" },
+      [[14, 0], [16, 1], [17, 1], [18, 0]],
       this.managers,
       scale,
       layer
@@ -1427,6 +1541,7 @@ var Ship = class {
     this.night.setTime(time % 24);
     this.morning.setTime(time % 24);
     this.day.setTime(time % 24);
+    this.evening.setTime(time % 24);
   }
   get open() {
     return this._open;
@@ -1436,6 +1551,7 @@ var Ship = class {
     this.day.open = Number(value);
     this.night.open = Number(value);
     this.morning.open = Number(value);
+    this.evening.open = Number(value);
   }
 };
 
@@ -1756,12 +1872,30 @@ var Renderer = class extends Div {
     super.resize();
     this.setPanZoom(void 0, void 0, void 0, true);
   }
+  screenToWorld(v) {
+    const rect = this.dom.getBoundingClientRect();
+    const viewportScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    const totalScale = viewportScale * this.zoomData.value;
+    const topLeftWorldX = this.zoomData.position.x * 1920 * (this.zoomData.value - 1) / this.zoomData.value;
+    const topLeftWorldY = this.zoomData.position.y * 1080 * (this.zoomData.value - 1) / this.zoomData.value;
+    const offset = new Vector2(-topLeftWorldX * viewportScale * this.zoomData.value, -topLeftWorldY * viewportScale * this.zoomData.value);
+    const screenRelativeX = v.x - rect.left;
+    const screenRelativeY = v.y - rect.top;
+    const worldX = (screenRelativeX - offset.x) / totalScale;
+    const worldY = (screenRelativeY - offset.y) / totalScale;
+    return new Vector2(worldX, worldY);
+  }
   setPanZoom(x = this.zoomData.position.x, y = this.zoomData.position.y, zoom = this.zoomData.value, force = false) {
     if (!force && x === this.zoomData.position.x && y === this.zoomData.position.y && zoom === this.zoomData.value) {
       return;
     }
-    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080) * zoom;
-    const offset = new Vector2(1920 * (zoom - 1), 1080 * (zoom - 1)).multiply(new Vector2(x, y).multiply(-1));
+    x = MathUtil.clamp(x, 0, 1);
+    y = MathUtil.clamp(y, 0, 1);
+    const viewportScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    const scale = viewportScale * zoom;
+    const topLeftWorldX = x * 1920 * (zoom - 1) / zoom;
+    const topLeftWorldY = y * 1080 * (zoom - 1) / zoom;
+    const offset = new Vector2(-topLeftWorldX * viewportScale * zoom, -topLeftWorldY * viewportScale * zoom);
     this.transform.setScale(scale);
     this.transform.setPosition(offset);
     this.zoomData.value = zoom;
@@ -1775,6 +1909,33 @@ var Renderer = class extends Div {
   }
   zoom(v) {
     this.setPanZoom(void 0, void 0, MathUtil.clamp(this.zoomData.value + v, 1, 5));
+  }
+};
+
+// ts/logic/debug.ts
+var Debug = class extends Div {
+  constructor(managers) {
+    super({
+      size: new Vector2(200, 50),
+      background: {
+        color: "white"
+      },
+      style: "color: black; font-size: 25px; font-family: Arial, sans-serif; padding: 10px;"
+    });
+    this.managers = managers;
+    this._enabled = false;
+    document.body.addEventListener("mousemove", (e) => {
+      const world = this.managers.renderer.screenToWorld(new Vector2(e.clientX, e.clientY));
+      this.dom.innerText = "X: ".concat(Math.round(world.x), ", Y: ").concat(Math.round(world.y));
+    });
+  }
+  get enabled() {
+    return this._enabled;
+  }
+  set enabled(value) {
+    this._enabled = value;
+    this.managers.mapManager.mapSvg.visible = value;
+    this.visible = value;
   }
 };
 
@@ -1803,6 +1964,7 @@ var LogicManager = class _LogicManager extends Main {
     };
     this.timeOffset = 0;
     container.append(this.managers.renderer);
+    container.append(this.debug = new Debug(this.managers));
     this.sky = new Sky(this.managers);
     this.shipBG = new Ship(this.managers, 0.2, "shipBG");
     this.ship = new Ship(this.managers);
@@ -1817,9 +1979,9 @@ var LogicManager = class _LogicManager extends Main {
     this.managers.routeManager = this.mapManager.routeManager;
     this.mapManager.build();
     this.peopleManager.build();
-    this.managers.renderer.add(this.peopleManager.dom, "ui", 1);
     this.managers.renderer.add(this.mapManager.dom, "ship", 90);
     this.peopleManager.dom.visible = false;
+    container.append(this.peopleManager.dom);
     this.ticker = new Ticker().addCallback(this.tick.bind(this));
     this.shipLayer = this.managers.renderer.getWrapper("ship");
     this.shipLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
@@ -1844,9 +2006,7 @@ var LogicManager = class _LogicManager extends Main {
       this.ship.open = Boolean(urlParams.get("open"));
     if (urlParams.get("time") !== null)
       this.timeOffset = 0 - _LogicManager.timeToMs((parseInt(urlParams.get("time")) - 1) / 9 * 24, this.values.secondsPerDay);
-    if (urlParams.get("debug") !== null) {
-      this.mapManager.mapSvg.visible = true;
-    }
+    this.debug.enabled = Boolean(urlParams.get("debug"));
     document.addEventListener("keydown", (e) => {
       if (e.key === "s") {
         this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
@@ -2270,7 +2430,7 @@ var Character = class extends Div {
       columns: 10,
       rows: 7,
       value: 0,
-      position: new Vector2(15, 19)
+      position: new Vector2(15, 17)
     });
     this.layers.push(skin);
     this.append(skin);
@@ -2281,7 +2441,7 @@ var Character = class extends Div {
         columns: 10,
         rows: 7,
         value: 0,
-        position: new Vector2(15, 19)
+        position: new Vector2(15, 17)
       });
       this.layers.push(layer);
       this.append(layer);
@@ -2304,11 +2464,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Dave",
       tasks: [
-        new EatTask({ start: 0, end: 1, location: mapManager.getLocation("deck4") }),
-        new EngineTask({ start: 2, end: 10, location: mapManager.getLocation("deck1Wheel") }),
-        new EatTask({ start: 10, end: 11, location: mapManager.getLocation("deck3") }),
-        new SleepTask({ start: 15, end: 23, location: mapManager.getLocation("orlop4") }),
-        new EatTask({ start: 23, end: 24, location: mapManager.getLocation("deck4") })
+        new EatTask({ start: 0, end: 1, location: mapManager.getLocation("mainDeck00") }),
+        new EngineTask({ start: 2, end: 10, location: mapManager.getLocation("bridgeDeck02") }),
+        new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("bridgeDeckCabin00") }),
+        new SleepTask({ start: 15, end: 23, location: mapManager.getLocation("orlopDeck04") }),
+        new EatTask({ start: 23, end: 24, location: mapManager.getLocation("gunDeck04") })
       ],
       character: new Character({
         skin: "Male_Skin1",
@@ -2324,11 +2484,11 @@ function getVisualPeople(mapManager) {
     {
       name: "Jane",
       tasks: [
-        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("orlop3") }),
-        new EngineTask({ start: 10, end: 18, location: mapManager.getLocation("deck1Wheel") }),
-        new ShowerTask({ start: 18, end: 19, location: mapManager.getLocation("deck0showers") }),
-        new EatTask({ start: 19, end: 21, location: mapManager.getLocation("deck4") }),
-        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("orlop3") })
+        new SleepTask({ start: 0, end: 7, location: mapManager.getLocation("orlopDeck07") }),
+        new EngineTask({ start: 10, end: 18, location: mapManager.getLocation("bridgeDeck02") }),
+        new ShowerTask({ start: 18, end: 19, location: mapManager.getLocation("bridgeDeckCabin00") }),
+        new EatTask({ start: 19, end: 21, location: mapManager.getLocation("gunDeck04") }),
+        new SleepTask({ start: 23, end: 24, location: mapManager.getLocation("orlopDeck07") })
       ],
       character: new Character({
         skin: "Female_Skin2",
@@ -2339,16 +2499,16 @@ function getVisualPeople(mapManager) {
           "Female_Clothing/Skirt"
         ]
       }),
-      offset: new Vector2(10, -15)
+      offset: new Vector2(0, 0)
     },
     {
       name: "Andrew",
       tasks: [
-        new EngineTask({ start: 0, end: 2, location: mapManager.getLocation("deck1Wheel") }),
-        new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("orlop4") }),
-        new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("deck0showers") }),
-        new EatTask({ start: 12, end: 14, location: mapManager.getLocation("deck4") }),
-        new EngineTask({ start: 18, end: 24, location: mapManager.getLocation("deck1Wheel") })
+        new EngineTask({ start: 0, end: 2, location: mapManager.getLocation("bridgeDeck02") }),
+        new SleepTask({ start: 2, end: 10, location: mapManager.getLocation("orlopDeck10") }),
+        new ShowerTask({ start: 10, end: 11, location: mapManager.getLocation("bridgeDeckCabin00") }),
+        new EatTask({ start: 12, end: 14, location: mapManager.getLocation("gunDeck03") }),
+        new EngineTask({ start: 18, end: 24, location: mapManager.getLocation("bridgeDeck02") })
       ],
       character: new Character({
         skin: "Male_Skin3",
@@ -2359,23 +2519,23 @@ function getVisualPeople(mapManager) {
           "Male_Clothing/Pants"
         ]
       }),
-      offset: new Vector2(-15, 10)
+      offset: new Vector2(0, 0)
     },
     {
       name: "Tim",
       tasks: [
-        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("orlop8") }),
-        new EatTask({ start: 7, end: 9, location: mapManager.getLocation("deck4") }),
-        new WorkTask({ start: 9, end: 10, location: mapManager.getLocation("deck2") }),
-        new WorkTask({ start: 10, end: 11, location: mapManager.getLocation("deck3") }),
-        new WorkTask({ start: 11, end: 12, location: mapManager.getLocation("deck4") }),
-        new WorkTask({ start: 12, end: 13, location: mapManager.getLocation("deck5") }),
-        new WorkTask({ start: 14, end: 15, location: mapManager.getLocation("orlop5") }),
-        new WorkTask({ start: 15, end: 16, location: mapManager.getLocation("orlop4") }),
-        new WorkTask({ start: 16, end: 17, location: mapManager.getLocation("orlop3") }),
-        new WorkTask({ start: 17, end: 18, location: mapManager.getLocation("orlop2") }),
-        new ShowerTask({ start: 21, end: 22, location: mapManager.getLocation("deck0showers") }),
-        new SleepTask({ start: 22, end: 24, location: mapManager.getLocation("orlop8") })
+        new SleepTask({ start: 0, end: 6, location: mapManager.getLocation("orlopDeck15") }),
+        new EatTask({ start: 7, end: 9, location: mapManager.getLocation("gunDeck02") }),
+        new WorkTask({ start: 9, end: 10, location: mapManager.getLocation("mainDeck00") }),
+        new WorkTask({ start: 10, end: 11, location: mapManager.getLocation("mainDeck02") }),
+        new WorkTask({ start: 11, end: 12, location: mapManager.getLocation("mainDeck04") }),
+        new WorkTask({ start: 12, end: 13, location: mapManager.getLocation("mainDeck06") }),
+        new WorkTask({ start: 14, end: 15, location: mapManager.getLocation("mainDeck08") }),
+        new WorkTask({ start: 15, end: 16, location: mapManager.getLocation("gunDeck14") }),
+        new WorkTask({ start: 16, end: 17, location: mapManager.getLocation("gunDeck12") }),
+        new WorkTask({ start: 17, end: 18, location: mapManager.getLocation("gunDeck10") }),
+        new ShowerTask({ start: 21, end: 22, location: mapManager.getLocation("bridgeDeckCabin00") }),
+        new SleepTask({ start: 22, end: 24, location: mapManager.getLocation("orlopDeck15") })
       ],
       character: new Character({
         skin: "Male_Skin4",
@@ -2384,7 +2544,7 @@ function getVisualPeople(mapManager) {
           "Male_Clothing/Pants"
         ]
       }),
-      offset: new Vector2(-15, 10)
+      offset: new Vector2(0, 0)
     }
   ];
 }
@@ -2400,7 +2560,7 @@ var Person = class {
     this.schedule = new scheduleClass(this.managers, this, {
       tasks: data.tasks
     });
-    this.speed = data.speed || 1e3;
+    this.speed = data.speed || 800;
   }
   get phase() {
     return this._phase;

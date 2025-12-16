@@ -59,6 +59,35 @@ export class Renderer extends Div {
         this.setPanZoom(undefined, undefined, undefined, true);
     }
 
+    screenToWorld(v:Vector2) {
+
+        // Get the renderer's position and size on screen (after CSS transform)
+        const rect = this.dom.getBoundingClientRect();
+        
+        // The CSS transform applies: scale(viewportScale * zoom) then translate(offset)
+        // So: screenPos = worldPos * totalScale + offset
+        // To reverse: worldPos = (screenPos - offset) / totalScale
+        
+        const viewportScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        const totalScale = viewportScale * this.zoomData.value;
+        
+        // Calculate offset (same as in setPanZoom)
+        const topLeftWorldX = this.zoomData.position.x * 1920 * (this.zoomData.value - 1) / this.zoomData.value;
+        const topLeftWorldY = this.zoomData.position.y * 1080 * (this.zoomData.value - 1) / this.zoomData.value;
+        const offset = new Vector2(-topLeftWorldX * viewportScale * this.zoomData.value, -topLeftWorldY * viewportScale * this.zoomData.value);
+        
+        // Convert screen coordinates to coordinates relative to the renderer element
+        // rect.left and rect.top are the screen position of the renderer after transform
+        const screenRelativeX = v.x - rect.left;
+        const screenRelativeY = v.y - rect.top;
+        
+        // Reverse the transform: world = (screen - offset) / totalScale
+        const worldX = (screenRelativeX - offset.x) / totalScale;
+        const worldY = (screenRelativeY - offset.y) / totalScale;
+        
+        return new Vector2(worldX, worldY);
+    }
+
     private zoomData: {
         value: number;
         position: Vector2;
@@ -73,8 +102,23 @@ export class Renderer extends Div {
             return;
         }
 
-        const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080)*zoom;
-        const offset = new Vector2(1920*(zoom-1), 1080*(zoom-1)).multiply(new Vector2(x, y).multiply(-1));
+        // Clamp pan values to [0, 1]
+        x = MathUtil.clamp(x, 0, 1);
+        y = MathUtil.clamp(y, 0, 1);
+
+        const viewportScale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        const scale = viewportScale * zoom;
+        
+        // At zoom level z, visible world size is (1920/z, 1080/z)
+        // Pan (0,0) should show world (0,0) at top-left
+        // Pan (1,1) should show world (1920,1080) at bottom-right
+        // So top-left world position for pan (x,y) is: (x * 1920 * (z-1)/z, y * 1080 * (z-1)/z)
+        // The offset needs to move the world so this position appears at screen (0,0)
+        // After scaling by (viewportScale * zoom), we need to offset by: -topLeftWorldPos * viewportScale * zoom
+        const topLeftWorldX = x * 1920 * (zoom - 1) / zoom;
+        const topLeftWorldY = y * 1080 * (zoom - 1) / zoom;
+        const offset = new Vector2(-topLeftWorldX * viewportScale * zoom, -topLeftWorldY * viewportScale * zoom);
+        
         this.transform.setScale(scale);
         this.transform.setPosition(offset);
 

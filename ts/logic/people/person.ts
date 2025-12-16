@@ -36,7 +36,7 @@ export class Person {
         this.schedule = new scheduleClass(this.managers, this, {
             tasks: data.tasks,
         });
-        this.speed = data.speed || 1000;
+        this.speed = data.speed || 800;
     }
 
     build(): void {
