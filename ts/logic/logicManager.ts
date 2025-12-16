@@ -32,12 +32,12 @@ export class LogicManager<P extends Person> extends Main {
         peopleManager: null,
         routeManager: null,
         renderer: new Renderer({
-            bg: 10,
-            world: 20,
-            shipBG: 25,
-            ship: 30,
-            overlay: 30,
-            ui: 40,
+            bg: [10, 0],
+            world: [20, 0],
+            shipBG: [25, 0.5],
+            ship: [30, 0],
+            overlay: [30, 0],
+            ui: [40, 0],
         }),
     };
     ship: Ship;
@@ -46,6 +46,7 @@ export class LogicManager<P extends Person> extends Main {
     shipBG: Ship;
     shipBGLayer: Div;
     debug: Debug;
+    day: number = 0;
     public constructor(
         public container: Container,
         protected classes: LogicManagerClasses<P>,
@@ -85,20 +86,31 @@ export class LogicManager<P extends Person> extends Main {
         this.shipBGLayer.visible = false;
         this.shipBGLayer.style('height: 480px; overflow: hidden;');
 
+        this.debug.enabled = false;
 
     }
 
     setup() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('spd')) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
-        if (urlParams.get('ship')) this.shipBGLayer.visible = true;
+        if (urlParams.get('spd') !== null) this.values.secondsPerDay = parseInt(urlParams.get('spd'));
+        else urlParams.set('spd', '50');
+        if (urlParams.get('ship') !== null) this.shipBGLayer.visible = Boolean(parseInt(urlParams.get('ship')));
+        else urlParams.set('ship', '0');
         if (urlParams.get('zoom') !== null) this.managers.renderer.setPanZoom(undefined, undefined, parseInt(urlParams.get('zoom')));
-        if (urlParams.get('x') !== null) this.managers.renderer.setPanZoom(parseInt(urlParams.get('x')) / 10);
-        if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y')) / 10);
-        if (urlParams.get('open') !== null) this.ship.open = Boolean(urlParams.get('open'));
+        else urlParams.set('zoom', '1');
+        if (urlParams.get('x') !== null) this.managers.renderer.setPanZoom(parseInt(urlParams.get('x')));
+        else urlParams.set('x', '0.5');
+        if (urlParams.get('y') !== null) this.managers.renderer.setPanZoom(undefined, parseInt(urlParams.get('y')));
+        else urlParams.set('y', '0.5');
+        if (urlParams.get('open') !== null) this.ship.open = Boolean(parseInt(urlParams.get('open')));
+        else urlParams.set('open', '0');
         if (urlParams.get('time') !== null) this.timeOffset = 0 - LogicManager.timeToMs((parseInt(urlParams.get('time')) - 1) / 9 * 24, this.values.secondsPerDay);
+        else urlParams.set('time', '0');
+        if (urlParams.get('debug') !== null) this.debug.enabled = Boolean(parseInt(urlParams.get('debug')));
+        else urlParams.set('debug', '0');
+
+        console.log(Boolean(urlParams.get('debug')));
         
-        this.debug.enabled = Boolean(urlParams.get('debug'));
 
 
         document.addEventListener('keydown', (e) => {
@@ -132,6 +144,10 @@ export class LogicManager<P extends Person> extends Main {
             if (e.key === 'ArrowDown') {
                 this.managers.renderer.pan(0, 0.02);
             }
+            if (e.key === 'm') {
+                window.history.replaceState({}, '', `?${urlParams.toString()}`);
+                window.location.reload();
+            }
         });
         this.container.dom.addEventListener('resize', () => {
             this.managers.renderer.resize();
@@ -139,13 +155,17 @@ export class LogicManager<P extends Person> extends Main {
     }
 
     timeOffset: number = 0;
+    lastTime: number = 0;
 
     setTime(time: number): void {
+
+        if (time < this.lastTime) this.day++;
+        this.lastTime = time;
 
         this.peopleManager.setTime(time);
         this.ship.setTime(time);
         this.shipBG.setTime(time);
-        this.sky.setTime(time);
+        this.sky.setTime(time, this.day);
 
         const waveRotation = 1;
         const waveTime = 1000;

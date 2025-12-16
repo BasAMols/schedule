@@ -4,13 +4,14 @@ import { Dom } from "../../../util/html/dom";
 import { timeEaser } from "../../../util/math/timeEaser";
 import { Vector2 } from "../../../util/math/vector2";
 import { Managers } from "../../managers";
+import { Sky } from "./sky";
 
 export class Moon extends Div {
     moon: Dom;
     reflection: Div;
     reflectionWrap: Div;
     overlay: RenderLayer;
-    constructor(protected managers: Managers) {
+    constructor(private sky: Sky, protected managers: Managers) {
         super({
             size: ['3000px', '800px'],
             style: 'overflow: hidden;',
@@ -23,7 +24,7 @@ export class Moon extends Div {
             anchor: new Vector2(45, 45),
             style: 'position: absolute; border-radius: 50%; filter: drop-shadow(0 0 50px rgb(255, 255, 255)) blur(1px); margin-top: -45px; margin-left: -45px; ',
         });
-        this.managers.renderer.add(this, 'bg', 35);
+        this.managers.renderer.add(this, 'bg', 20);
         this.append(this.moon);
 
         this.reflectionWrap = new Div({
@@ -57,24 +58,56 @@ export class Moon extends Div {
         }), 'overlay', 60);
 
     }
-    setTime(time: number) {
-        const p = new Vector2(0, -1000).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+    getMoonPeriod(time: number, day: number = 0): number {
+        return time / 24;
+
+        
+
+        // Moon’s apparent day length relative to the sun (~24h 50m)
+        const MOON_DAY_HOURS = 24.8333333333; // 24 + 50/60
+
+        // Daily delay of moonrise (~50 minutes)
+        const DAILY_DRIFT_HOURS = 0.8333333333;
+
+        // Shift the moon later each day, then normalize to one rotation
+        const shiftedTime = time + day * DAILY_DRIFT_HOURS;
+
+        return ((shiftedTime / MOON_DAY_HOURS) % 1 + 1) % 1;
+    }
+    getMoonPhase(time: number, day: number): number {
+        const sun = this.sky.sun.getSunPeriod(time);
+        const moon = this.getMoonPeriod(time, day);
+    
+        // Angular separation in [0–1)
+        const delta = ((moon - sun) % 1 + 1) % 1;
+    
+        // Shift so full moon occurs at the boundaries (0 and 1)
+        const shifted = (delta + 0.5) % 1;
+    
+        // 0 and 1 = full moon, 0.5 = new moon
+        return Math.abs(shifted - 0.5) * 2;
+    }
+    
+    setTime(time: number, day: number = 0) {
+        const moonPeriod = this.getMoonPeriod(time, day);
+
+        const p = new Vector2(0, -1000).rotate(moonPeriod * 360).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
         this.moon.transform.setPosition(p);
+
         const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
         let o = 1 - (p2.y - 300) / 600;
         this.reflection.transform.setPosition(p2);
         this.reflection.style(`opacity: ${o};`);
+        this.overlay.element.transform.setRotation(moonPeriod * 360 + 90);
 
-        this.overlay.element.transform.setRotation(time / 24 * 360 + 90);
-
-        const opacity = timeEaser(time % 24, [
-            [0, 0.7],
-            [5, 1],
-            [6, 0],
-            [18, 0],
-            [19, 1],
-            [24, 0.7],
-        ], 24);
+        const opacity = timeEaser(moonPeriod, [
+            [0 / 24, 0.7],
+            [5 / 24, 1],
+            [6 / 24, 0],
+            [18 / 24, 0],
+            [19 / 24, 1],
+            [24 / 24, 0.7],
+        ], 1);
         this.overlay.opacity = opacity;
 
 

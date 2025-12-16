@@ -22,7 +22,7 @@ export class Sun extends Div {
             anchor: new Vector2(100, 100),
             style: 'position: absolute; border-radius: 50%; filter: drop-shadow(0 0 100px rgba(244, 244, 73, 1)) blur(10px); margin-top: -100px; margin-left: -100px; ',
         });
-        this.managers.renderer.add(this, 'bg', 30);
+        this.managers.renderer.add(this, 'bg', 10);
         this.append(this.sun);
 
 
@@ -56,16 +56,21 @@ export class Sun extends Div {
             anchor: new Vector2(1500, 1500),
         }), 'overlay', 59);
     }
+    getSunPeriod(time: number): number {
+        return time / 24;
+    }
     setTime(time: number) {
 
-        const p = new Vector2(0, 1000).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+        const sunPeriod = this.getSunPeriod(time);
+
+        const p = new Vector2(0, 1000).rotate(sunPeriod * 360).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
         this.sun.transform.setPosition(p);
         const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
         let o = 1 - (p2.y - 100) / 400;
         this.reflection.transform.setPosition(p2);
         this.reflection.style(`opacity: ${o};`);
 
-        this.overlay.element.transform.setRotation(time / 24 * 360 - 90);
+        this.overlay.element.transform.setRotation(sunPeriod * 360 - 90);
 
         const opacity = timeEaser(time % 24, [
             [6, 0],

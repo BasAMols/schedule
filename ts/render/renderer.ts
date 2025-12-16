@@ -11,8 +11,9 @@ export class Renderer extends Div {
     private wrappers: Record<RendererWrappers, {
         div: Div;
         depth: number;
+        parralax: number;
     }>;
-    constructor(wrappers: Record<RendererWrappers, number>) {
+    constructor(wrappers: Record<RendererWrappers, [number, number]>) {
         super({
             size: new Vector2(1920, 1080),
             classNames: ['renderer'],
@@ -26,7 +27,8 @@ export class Renderer extends Div {
             });
             this.wrappers[name as RendererWrappers] = {
                 div: div,
-                depth: depth,
+                depth: depth[0],
+                parralax: depth[1],
             };
             div.style(`z-index: ${depth};`);
             this.append(this.wrappers[name as RendererWrappers].div);

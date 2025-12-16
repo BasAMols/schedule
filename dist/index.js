@@ -1471,7 +1471,7 @@ var ShipTheme = class {
     this.layers = Object.fromEntries(Object.entries(layers).map(([layer2, image]) => {
       const div = new Div({
         background: {
-          image: "dist/images/ship/".concat(image, ".png"),
+          image: "dist/images/ship/".concat(image, "-min.png"),
           type: "image"
         },
         scale: new Vector2(scale, scale),
@@ -1593,17 +1593,17 @@ var Horizon = class extends Div {
     this.overlay.element.background({
       color: Utils.easeColor(timeEaser(time % 24, [
         [7, 1],
-        [12, 0],
+        [10, 0],
         [15, 0],
-        [20, 1]
+        [18, 1]
       ], 24), [28, 42, 58, 1], [90, 130, 180, 1])
     });
     this.background({
       color: Utils.easeColor(timeEaser(time % 24, [
         [7, 1],
-        [12, 0],
+        [10, 0],
         [15, 0],
-        [20, 1]
+        [18, 1]
       ], 24), [28, 42, 58, 1], [90, 130, 180, 1])
     });
   }
@@ -1611,11 +1611,12 @@ var Horizon = class extends Div {
 
 // ts/logic/scene/backgrounds/moon.ts
 var Moon = class extends Div {
-  constructor(managers) {
+  constructor(sky, managers) {
     super({
       size: ["3000px", "800px"],
       style: "overflow: hidden;"
     });
+    this.sky = sky;
     this.managers = managers;
     this.moon = new Div({
       size: ["90px", "90px"],
@@ -1625,7 +1626,7 @@ var Moon = class extends Div {
       anchor: new Vector2(45, 45),
       style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 50px rgb(255, 255, 255)) blur(1px); margin-top: -45px; margin-left: -45px; "
     });
-    this.managers.renderer.add(this, "bg", 35);
+    this.managers.renderer.add(this, "bg", 20);
     this.append(this.moon);
     this.reflectionWrap = new Div({
       size: ["3000px", "300px"],
@@ -1656,22 +1657,37 @@ var Moon = class extends Div {
       anchor: new Vector2(1500, 1500)
     }), "overlay", 60);
   }
-  setTime(time) {
-    const p = new Vector2(0, -1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+  getMoonPeriod(time, day = 0) {
+    return time / 24;
+    const MOON_DAY_HOURS = 24.8333333333;
+    const DAILY_DRIFT_HOURS = 0.8333333333;
+    const shiftedTime = time + day * DAILY_DRIFT_HOURS;
+    return (shiftedTime / MOON_DAY_HOURS % 1 + 1) % 1;
+  }
+  getMoonPhase(time, day) {
+    const sun = this.sky.sun.getSunPeriod(time);
+    const moon = this.getMoonPeriod(time, day);
+    const delta = ((moon - sun) % 1 + 1) % 1;
+    const shifted = (delta + 0.5) % 1;
+    return Math.abs(shifted - 0.5) * 2;
+  }
+  setTime(time, day = 0) {
+    const moonPeriod = this.getMoonPeriod(time, day);
+    const p = new Vector2(0, -1e3).rotate(moonPeriod * 360).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
     this.moon.transform.setPosition(p);
     const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
     let o = 1 - (p2.y - 300) / 600;
     this.reflection.transform.setPosition(p2);
     this.reflection.style("opacity: ".concat(o, ";"));
-    this.overlay.element.transform.setRotation(time / 24 * 360 + 90);
-    const opacity = timeEaser(time % 24, [
-      [0, 0.7],
-      [5, 1],
-      [6, 0],
-      [18, 0],
-      [19, 1],
-      [24, 0.7]
-    ], 24);
+    this.overlay.element.transform.setRotation(moonPeriod * 360 + 90);
+    const opacity = timeEaser(moonPeriod, [
+      [0 / 24, 0.7],
+      [5 / 24, 1],
+      [6 / 24, 0],
+      [18 / 24, 0],
+      [19 / 24, 1],
+      [24 / 24, 0.7]
+    ], 1);
     this.overlay.opacity = opacity;
   }
 };
@@ -1692,7 +1708,7 @@ var Sun = class extends Div {
       anchor: new Vector2(100, 100),
       style: "position: absolute; border-radius: 50%; filter: drop-shadow(0 0 100px rgba(244, 244, 73, 1)) blur(10px); margin-top: -100px; margin-left: -100px; "
     });
-    this.managers.renderer.add(this, "bg", 30);
+    this.managers.renderer.add(this, "bg", 10);
     this.append(this.sun);
     this.reflectionWrap = new Div({
       size: ["3000px", "300px"],
@@ -1723,14 +1739,18 @@ var Sun = class extends Div {
       anchor: new Vector2(1500, 1500)
     }), "overlay", 59);
   }
+  getSunPeriod(time) {
+    return time / 24;
+  }
   setTime(time) {
-    const p = new Vector2(0, 1e3).rotate(time * 360 / 24).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
+    const sunPeriod = this.getSunPeriod(time);
+    const p = new Vector2(0, 1e3).rotate(sunPeriod * 360).add(new Vector2(1920, 1080).divide(2)).add(new Vector2(0, 300));
     this.sun.transform.setPosition(p);
     const p2 = p.multiply(new Vector2(1, -1)).add(new Vector2(0, 700));
     let o = 1 - (p2.y - 100) / 400;
     this.reflection.transform.setPosition(p2);
     this.reflection.style("opacity: ".concat(o, ";"));
-    this.overlay.element.transform.setRotation(time / 24 * 360 - 90);
+    this.overlay.element.transform.setRotation(sunPeriod * 360 - 90);
     const opacity = timeEaser(time % 24, [
       [6, 0],
       [7, 1],
@@ -1752,13 +1772,55 @@ var Sky = class extends Div {
       }
     });
     this.managers = managers;
-    this.managers.renderer.add(this, "bg", 25);
+    this.managers.renderer.add(this, "bg", 1);
     this.sun = new Sun(this.managers);
-    this.moon = new Moon(this.managers);
+    this.moon = new Moon(this, this.managers);
     this.horizon = new Horizon(this.managers);
+    this.stars = new Div({
+      position: new Vector2(-400, -1500),
+      size: new Vector2(4e3, 4e3)
+    });
+    for (let i = 0; i < 400; i++) {
+      const star = new Div({
+        position: new Vector2(Math.random() * 4e3, Math.random() * 4e3),
+        size: Math.random() < 0.03 ? new Vector2(3, 3) : new Vector2(1 + Math.random(), 1 + Math.random()),
+        background: {
+          color: "white"
+        }
+      });
+      this.stars.append(star);
+    }
+    this.append(this.stars);
+    this.stars.append(new Div({
+      position: new Vector2(2e3, 1800),
+      size: new Vector2(3, 3),
+      background: {
+        color: "white"
+      }
+    }));
     this.setTime(15);
   }
-  setTime(time) {
+  getSkyBrightness(time, day = 0, moonContribution = 0.5) {
+    const sun = this.sun.getSunPeriod(time);
+    const moon = this.moon.getMoonPeriod(time, day);
+    const phase = this.moon.getMoonPhase(time, day);
+    const sunAngle = (sun - 0.5) * 2 * Math.PI;
+    let sunBrightness = Math.max(0, Math.cos(sunAngle));
+    const moonAngle = (moon - 0.5) * 2 * Math.PI;
+    let moonBrightness = Math.max(0, Math.cos(moonAngle)) * phase * moonContribution;
+    const separation = Math.abs((moon - sun + 0.5) % 1 - 0.5);
+    const ECLIPSE_THRESHOLD = 0.02;
+    if (separation < ECLIPSE_THRESHOLD) {
+      if (phase < 0.1) {
+        sunBrightness *= separation / ECLIPSE_THRESHOLD;
+      }
+      if (phase > 0.9) {
+        moonBrightness *= separation / ECLIPSE_THRESHOLD;
+      }
+    }
+    return Math.max(0, sunBrightness + moonBrightness);
+  }
+  setTime(time, day = 0) {
     const color = Utils.easeColor(timeEaser(time % 24, [
       [5, 0],
       [9, 1],
@@ -1770,8 +1832,14 @@ var Sky = class extends Div {
     });
     window.document.body.style.backgroundColor = color;
     this.sun.setTime(time);
-    this.moon.setTime(time);
+    this.moon.setTime(time, day);
     this.horizon.setTime(time);
+    this.stars.style("opacity: ".concat(timeEaser(time % 24, [
+      [6, 1],
+      [7, 0],
+      [18, 0],
+      [19, 1]
+    ], 24), ";"));
   }
 };
 
@@ -1843,7 +1911,8 @@ var Renderer = class extends Div {
       });
       this.wrappers[name] = {
         div,
-        depth
+        depth: depth[0],
+        parralax: depth[1]
       };
       div.style("z-index: ".concat(depth, ";"));
       this.append(this.wrappers[name].div);
@@ -1954,15 +2023,17 @@ var LogicManager = class _LogicManager extends Main {
       peopleManager: null,
       routeManager: null,
       renderer: new Renderer({
-        bg: 10,
-        world: 20,
-        shipBG: 25,
-        ship: 30,
-        overlay: 30,
-        ui: 40
+        bg: [10, 0],
+        world: [20, 0],
+        shipBG: [25, 0.5],
+        ship: [30, 0],
+        overlay: [30, 0],
+        ui: [40, 0]
       })
     };
+    this.day = 0;
     this.timeOffset = 0;
+    this.lastTime = 0;
     container.append(this.managers.renderer);
     container.append(this.debug = new Debug(this.managers));
     this.sky = new Sky(this.managers);
@@ -1989,24 +2060,43 @@ var LogicManager = class _LogicManager extends Main {
     this.shipBGLayer.transform.setAnchor(new Vector2(1920 / 2, 800));
     this.shipBGLayer.visible = false;
     this.shipBGLayer.style("height: 480px; overflow: hidden;");
+    this.debug.enabled = false;
   }
   setup() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("spd"))
+    if (urlParams.get("spd") !== null)
       this.values.secondsPerDay = parseInt(urlParams.get("spd"));
-    if (urlParams.get("ship"))
-      this.shipBGLayer.visible = true;
+    else
+      urlParams.set("spd", "50");
+    if (urlParams.get("ship") !== null)
+      this.shipBGLayer.visible = Boolean(parseInt(urlParams.get("ship")));
+    else
+      urlParams.set("ship", "0");
     if (urlParams.get("zoom") !== null)
       this.managers.renderer.setPanZoom(void 0, void 0, parseInt(urlParams.get("zoom")));
+    else
+      urlParams.set("zoom", "1");
     if (urlParams.get("x") !== null)
-      this.managers.renderer.setPanZoom(parseInt(urlParams.get("x")) / 10);
+      this.managers.renderer.setPanZoom(parseInt(urlParams.get("x")));
+    else
+      urlParams.set("x", "0.5");
     if (urlParams.get("y") !== null)
-      this.managers.renderer.setPanZoom(void 0, parseInt(urlParams.get("y")) / 10);
+      this.managers.renderer.setPanZoom(void 0, parseInt(urlParams.get("y")));
+    else
+      urlParams.set("y", "0.5");
     if (urlParams.get("open") !== null)
-      this.ship.open = Boolean(urlParams.get("open"));
+      this.ship.open = Boolean(parseInt(urlParams.get("open")));
+    else
+      urlParams.set("open", "0");
     if (urlParams.get("time") !== null)
       this.timeOffset = 0 - _LogicManager.timeToMs((parseInt(urlParams.get("time")) - 1) / 9 * 24, this.values.secondsPerDay);
-    this.debug.enabled = Boolean(urlParams.get("debug"));
+    else
+      urlParams.set("time", "0");
+    if (urlParams.get("debug") !== null)
+      this.debug.enabled = Boolean(parseInt(urlParams.get("debug")));
+    else
+      urlParams.set("debug", "0");
+    console.log(Boolean(urlParams.get("debug")));
     document.addEventListener("keydown", (e) => {
       if (e.key === "s") {
         this.peopleManager.dom.visible = !this.peopleManager.dom.visible;
@@ -2038,16 +2128,23 @@ var LogicManager = class _LogicManager extends Main {
       if (e.key === "ArrowDown") {
         this.managers.renderer.pan(0, 0.02);
       }
+      if (e.key === "m") {
+        window.history.replaceState({}, "", "?".concat(urlParams.toString()));
+        window.location.reload();
+      }
     });
     this.container.dom.addEventListener("resize", () => {
       this.managers.renderer.resize();
     });
   }
   setTime(time) {
+    if (time < this.lastTime)
+      this.day++;
+    this.lastTime = time;
     this.peopleManager.setTime(time);
     this.ship.setTime(time);
     this.shipBG.setTime(time);
-    this.sky.setTime(time);
+    this.sky.setTime(time, this.day);
     const waveRotation = 1;
     const waveTime = 1e3;
     const waveHeight = 10;

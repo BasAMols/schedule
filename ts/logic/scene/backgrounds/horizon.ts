@@ -27,17 +27,17 @@ export class Horizon extends Div {
         this.overlay.element.background({
             color: Utils.easeColor(timeEaser(time % 24, [
                 [7, 1],
-                [12, 0],
+                [10, 0],
                 [15, 0],
-                [20, 1],
+                [18, 1],
             ], 24), [28, 42, 58, 1], [90, 130, 180, 1]),
         });
         this.background({
             color: Utils.easeColor(timeEaser(time % 24, [
                 [7, 1],
-                [12, 0],
+                [10, 0],
                 [15, 0],
-                [20, 1],
+                [18, 1],
             ], 24), [28, 42, 58, 1], [90, 130, 180, 1]),
         });
     }

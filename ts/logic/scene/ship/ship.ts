@@ -18,7 +18,7 @@ export class ShipTheme {
         this.layers = Object.fromEntries(Object.entries(layers).map(([layer, image]) => {
             const div = new Div({
                 background: {
-                    image: `dist/images/ship/${image}.png`,
+                    image: `dist/images/ship/${image}-min.png`,
                     type: 'image',
                 },
                 scale: new Vector2(scale, scale),
